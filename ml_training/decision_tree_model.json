@@ -1,0 +1,149 @@
+{
+  "type": "node",
+  "feature": "category_code",
+  "threshold": 1.5,
+  "left": {
+    "type": "node",
+    "feature": "hour_of_day",
+    "threshold": 7.5,
+    "left": {
+      "type": "leaf",
+      "class": 0,
+      "probabilities": [
+        1.0,
+        0.0,
+        0.0
+      ]
+    },
+    "right": {
+      "type": "node",
+      "feature": "days_used_this_hour",
+      "threshold": 2.5,
+      "left": {
+        "type": "leaf",
+        "class": 0,
+        "probabilities": [
+          1.0,
+          0.0,
+          0.0
+        ]
+      },
+      "right": {
+        "type": "node",
+        "feature": "duration_seconds",
+        "threshold": 298.0,
+        "left": {
+          "type": "leaf",
+          "class": 0,
+          "probabilities": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        },
+        "right": {
+          "type": "node",
+          "feature": "hour_of_day",
+          "threshold": 22.5,
+          "left": {
+            "type": "leaf",
+            "class": 2,
+            "probabilities": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          },
+          "right": {
+            "type": "leaf",
+            "class": 0,
+            "probabilities": [
+              1.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    }
+  },
+  "right": {
+    "type": "node",
+    "feature": "rolling_distraction_2h",
+    "threshold": 2392.0,
+    "left": {
+      "type": "node",
+      "feature": "duration_seconds",
+      "threshold": 3595.5,
+      "left": {
+        "type": "node",
+        "feature": "hour_of_day",
+        "threshold": 7.5,
+        "left": {
+          "type": "leaf",
+          "class": 0,
+          "probabilities": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        },
+        "right": {
+          "type": "node",
+          "feature": "days_used_this_hour",
+          "threshold": 2.5,
+          "left": {
+            "type": "leaf",
+            "class": 0,
+            "probabilities": [
+              1.0,
+              0.0,
+              0.0
+            ]
+          },
+          "right": {
+            "type": "node",
+            "feature": "duration_seconds",
+            "threshold": 676.5,
+            "left": {
+              "type": "leaf",
+              "class": 0,
+              "probabilities": [
+                0.8888888888888888,
+                0.0,
+                0.1111111111111111
+              ]
+            },
+            "right": {
+              "type": "leaf",
+              "class": 2,
+              "probabilities": [
+                0.05263157894736842,
+                0.0,
+                0.9473684210526315
+              ]
+            }
+          }
+        }
+      },
+      "right": {
+        "type": "leaf",
+        "class": 1,
+        "probabilities": [
+          0.0,
+          1.0,
+          0.0
+        ]
+      }
+    },
+    "right": {
+      "type": "leaf",
+      "class": 1,
+      "probabilities": [
+        0.0,
+        1.0,
+        0.0
+      ]
+    }
+  }
+}
