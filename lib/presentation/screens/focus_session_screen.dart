@@ -4,6 +4,8 @@ import '../../data/repositories/focus_repository.dart';
 import '../../data/repositories/preferences_repository.dart';
 import '../../domain/models/focus_session.dart';
 import '../../core/constants/app_colors.dart';
+import '../../data/repositories/progress_repository.dart';
+import '../widgets/level_up_dialog.dart';
 
 class FocusSessionScreen extends StatefulWidget {
   const FocusSessionScreen({super.key});
@@ -80,6 +82,12 @@ class _FocusSessionScreenState extends State<FocusSessionScreen> {
     );
 
     await _repository.insertFocusSession(session);
+
+    // Stage 2: Award +30 XP and check level-up
+    final levelUp = await ProgressRepository().recordFocusCompletion(_selectedMinutes);
+    if (levelUp != null && mounted) {
+      LevelUpDialog.show(context, newLevel: levelUp.newLevel, title: levelUp.title);
+    }
 
     if (mounted) {
       setState(() {

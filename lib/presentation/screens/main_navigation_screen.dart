@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
-import 'insights_screen.dart';
+import 'journey_screen.dart';
 import 'focus_session_screen.dart';
-import 'history_screen.dart';
+import 'insights_screen.dart';
 import 'settings_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -24,9 +24,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   static const _pages = <Widget>[
     DashboardScreen(),
-    InsightsScreen(),
+    JourneyScreen(),
     FocusSessionScreen(),
-    HistoryScreen(),
+    InsightsScreen(),
     SettingsScreen(),
   ];
 
@@ -57,9 +57,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               label: 'Dashboard',
             ),
             NavigationDestination(
-              icon: Icon(Icons.psychology_outlined),
-              selectedIcon: Icon(Icons.psychology_rounded),
-              label: 'Insights',
+              icon: Icon(Icons.military_tech_outlined),
+              selectedIcon: Icon(Icons.military_tech_rounded),
+              label: 'Journey',
             ),
             NavigationDestination(
               icon: Icon(Icons.timer_outlined),
@@ -67,9 +67,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               label: 'Focus',
             ),
             NavigationDestination(
-              icon: Icon(Icons.bar_chart_outlined),
-              selectedIcon: Icon(Icons.bar_chart_rounded),
-              label: 'History',
+              icon: Icon(Icons.psychology_outlined),
+              selectedIcon: Icon(Icons.psychology_rounded),
+              label: 'Insights',
             ),
             NavigationDestination(
               icon: Icon(Icons.settings_outlined),

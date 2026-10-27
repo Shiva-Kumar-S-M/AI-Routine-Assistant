@@ -229,10 +229,11 @@ class UsageMonitorService : Service() {
 
                 val streak = calculateProductivityStreak(db)
                 val appName = UsageStatsHelper.getAppLabel(this, pkg)
+                val hookPair = selectBestHook(db, pkg, usedMins, streak)
 
                 if (hasOverlayPermission()) {
                     shownForSession.add(pkg)
-                    showFullScreenOverlay(pkg, appName, usedMins, limitMins, streak)
+                    showFullScreenOverlay(pkg, appName, usedMins, limitMins, streak, hookPair)
                 }
             }
         } catch (_: Exception) {
@@ -249,7 +250,8 @@ class UsageMonitorService : Service() {
         appName: String,
         usedMins: Int,
         limitMins: Int,
-        streak: Int
+        streak: Int,
+        hookPair: Pair<String, String>
     ) {
         handler.post {
             hideOverlay()
@@ -257,7 +259,6 @@ class UsageMonitorService : Service() {
             val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
             overlayTargetPackage = pkg
 
-            val hookPair = HOOK_TEMPLATES[Random.nextInt(HOOK_TEMPLATES.size)]
             val hookType = hookPair.first
             val template = hookPair.second
 
@@ -526,6 +527,14 @@ class UsageMonitorService : Service() {
                     )
                 }
                 db.insert("notifications_log", null, values)
+
+                val feedback = ContentValues().apply {
+                    put("package_name", pkg)
+                    put("hook_type", hookType)
+                    put("action", actionType)
+                    put("timestamp", System.currentTimeMillis())
+                }
+                db.insert("hook_feedback", null, feedback)
             } catch (_: Exception) {
             } finally {
                 try { db?.close() } catch (_: Exception) {}
@@ -568,6 +577,40 @@ class UsageMonitorService : Service() {
             if (streak > 0) streak else 1
         } catch (_: Exception) {
             1
+        }
+    }
+
+    private fun selectBestHook(db: SQLiteDatabase, pkg: String, usedMins: Int, streak: Int): Pair<String, String> {
+        try {
+            val cursor = db.rawQuery(
+                """
+                SELECT hook_type,
+                       SUM(CASE WHEN action = 'turn_back' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) as win_rate
+                FROM hook_feedback
+                WHERE package_name = ?
+                GROUP BY hook_type
+                HAVING COUNT(*) >= 2
+                ORDER BY win_rate DESC
+                LIMIT 1
+                """.trimIndent(),
+                arrayOf(pkg)
+            )
+            val favoredType = cursor.use {
+                if (it.moveToFirst() && it.getDouble(1) >= 0.5) it.getString(0) else null
+            }
+            if (favoredType != null) {
+                val match = HOOK_TEMPLATES.find { it.first == favoredType }
+                if (match != null) return match
+            }
+        } catch (_: Exception) {}
+
+        val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        return when {
+            usedMins >= 120 -> HOOK_TEMPLATES.first { it.first == "loss" }
+            streak >= 3 -> HOOK_TEMPLATES.first { it.first == "streak" }
+            currentHour >= 21 || currentHour < 5 -> HOOK_TEMPLATES.first { it.first == "future_self" }
+            Random.nextBoolean() -> HOOK_TEMPLATES.first { it.first == "goal" }
+            else -> HOOK_TEMPLATES.first { it.first == "social_proof" }
         }
     }
 

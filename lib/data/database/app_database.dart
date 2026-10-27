@@ -20,8 +20,9 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -71,7 +72,8 @@ class AppDatabase {
         package_name TEXT NOT NULL,
         message TEXT NOT NULL,
         timestamp INTEGER NOT NULL,
-        trigger_conditions TEXT
+        trigger_conditions TEXT,
+        rewarded INTEGER DEFAULT 0
       )
     ''');
 
@@ -94,7 +96,7 @@ class AppDatabase {
       )
     ''');
 
-    // 7. emotional_logs table (Post-session emotional trigger log)
+    // 7. emotional_logs table
     await db.execute('''
       CREATE TABLE emotional_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -119,7 +121,216 @@ class AppDatabase {
       );
     });
     await batch.commit();
+
+    // Stage 2: Dopamine / Journey Tables
+    await _createJourneyTables(db);
   }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _createJourneyTables(db);
+
+      // Add rewarded column to notifications_log if it doesn't exist
+      try {
+        await db.execute('ALTER TABLE notifications_log ADD COLUMN rewarded INTEGER DEFAULT 0');
+      } catch (_) {
+        // Column may already exist
+      }
+    }
+  }
+
+  Future<void> _createJourneyTables(Database db) async {
+    // 8. user_progress table (singleton row id=1)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS user_progress (
+        id INTEGER PRIMARY KEY,
+        xp INTEGER DEFAULT 0,
+        level INTEGER DEFAULT 1,
+        streak_days INTEGER DEFAULT 0,
+        streak_freezes INTEGER DEFAULT 0,
+        time_reclaimed_seconds INTEGER DEFAULT 0,
+        daily_goal_type TEXT DEFAULT 'turn_backs',
+        daily_goal_target INTEGER DEFAULT 3
+      )
+    ''');
+
+    await db.execute('''
+      INSERT OR IGNORE INTO user_progress (
+        id, xp, level, streak_days, streak_freezes, time_reclaimed_seconds, daily_goal_type, daily_goal_target
+      ) VALUES (1, 0, 1, 0, 0, 0, 'turn_backs', 3)
+    ''');
+
+    // 9. badges table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS badges (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        icon_name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        max_progress INTEGER NOT NULL,
+        current_progress INTEGER DEFAULT 0,
+        is_unlocked INTEGER DEFAULT 0,
+        unlocked_at INTEGER
+      )
+    ''');
+
+    // 10. xp_transactions table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS xp_transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        amount INTEGER NOT NULL,
+        source TEXT NOT NULL,
+        description TEXT NOT NULL,
+        timestamp INTEGER NOT NULL
+      )
+    ''');
+
+    // 11. hook_feedback table (Decision Tree hook optimization)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS hook_feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        package_name TEXT NOT NULL,
+        hook_type TEXT NOT NULL,
+        action TEXT NOT NULL,
+        timestamp INTEGER NOT NULL
+      )
+    ''');
+
+    // Seed default 12 badges
+    final badgeBatch = db.batch();
+    for (final b in _defaultBadges) {
+      badgeBatch.insert(
+        'badges',
+        b,
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+    }
+    await badgeBatch.commit(noResult: true);
+  }
+
+  static const List<Map<String, dynamic>> _defaultBadges = [
+    {
+      'id': 'first_turn_back',
+      'title': 'First Turn-Back',
+      'description': 'Resisted the impulse and turned back from an overlay',
+      'icon_name': 'shield',
+      'category': 'willpower',
+      'max_progress': 1,
+      'current_progress': 0,
+      'is_unlocked': 0,
+    },
+    {
+      'id': 'turn_back_5',
+      'title': 'Focus Defender',
+      'description': 'Turned back from distraction 5 times',
+      'icon_name': 'shield_check',
+      'category': 'willpower',
+      'max_progress': 5,
+      'current_progress': 0,
+      'is_unlocked': 0,
+    },
+    {
+      'id': 'turn_back_20',
+      'title': 'Attention Guardian',
+      'description': 'Turned back from distraction 20 times',
+      'icon_name': 'verified_user',
+      'category': 'willpower',
+      'max_progress': 20,
+      'current_progress': 0,
+      'is_unlocked': 0,
+    },
+    {
+      'id': 'streak_3',
+      'title': 'Momentum Starter',
+      'description': 'Stayed under daily limits for 3 days in a row',
+      'icon_name': 'local_fire_department',
+      'category': 'streak',
+      'max_progress': 3,
+      'current_progress': 0,
+      'is_unlocked': 0,
+    },
+    {
+      'id': 'streak_7',
+      'title': 'Week of Willpower',
+      'description': '7-day streak under limits. Earned a Streak Freeze!',
+      'icon_name': 'bolt',
+      'category': 'streak',
+      'max_progress': 7,
+      'current_progress': 0,
+      'is_unlocked': 0,
+    },
+    {
+      'id': 'perfect_week',
+      'title': 'Perfect Week',
+      'description': '7 full days without a single limit bypass',
+      'icon_name': 'military_tech',
+      'category': 'streak',
+      'max_progress': 7,
+      'current_progress': 0,
+      'is_unlocked': 0,
+    },
+    {
+      'id': 'night_owl_beaten',
+      'title': 'Night Owl Beaten',
+      'description': 'Resisted late-night scrolling past 11:00 PM',
+      'icon_name': 'bedtime',
+      'category': 'willpower',
+      'max_progress': 1,
+      'current_progress': 0,
+      'is_unlocked': 0,
+    },
+    {
+      'id': 'focus_novice',
+      'title': 'Focus Novice',
+      'description': 'Completed your first 25m Pomodoro focus session',
+      'icon_name': 'timer',
+      'category': 'focus',
+      'max_progress': 1,
+      'current_progress': 0,
+      'is_unlocked': 0,
+    },
+    {
+      'id': 'focus_master',
+      'title': 'Deep Work Dynamo',
+      'description': 'Completed 10 deep focus sessions',
+      'icon_name': 'all_inclusive',
+      'category': 'focus',
+      'max_progress': 10,
+      'current_progress': 0,
+      'is_unlocked': 0,
+    },
+    {
+      'id': 'reclaim_1h',
+      'title': 'Hour Reclaimed',
+      'description': 'Saved 60 total minutes by turning back from scrolling',
+      'icon_name': 'hourglass_bottom',
+      'category': 'time',
+      'max_progress': 60,
+      'current_progress': 0,
+      'is_unlocked': 0,
+    },
+    {
+      'id': 'reclaim_5h',
+      'title': 'Time Billionaire',
+      'description': 'Reclaimed 300 minutes (5 full hours) of your life',
+      'icon_name': 'savings',
+      'category': 'time',
+      'max_progress': 300,
+      'current_progress': 0,
+      'is_unlocked': 0,
+    },
+    {
+      'id': 'quiz_master',
+      'title': 'Mental Athlete',
+      'description': 'Completed your first fast-paced Brain Challenge',
+      'icon_name': 'psychology',
+      'category': 'focus',
+      'max_progress': 1,
+      'current_progress': 0,
+      'is_unlocked': 0,
+    },
+  ];
 
   Future<void> close() async {
     final db = await instance.database;

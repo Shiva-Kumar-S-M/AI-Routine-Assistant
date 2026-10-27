@@ -42,3 +42,4 @@ class BootReceiver : BroadcastReceiver() {
         return mode == AppOpsManager.MODE_ALLOWED
     }
 }
+

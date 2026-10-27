@@ -9,6 +9,11 @@ import '../widgets/category_chart.dart';
 import '../widgets/trend_chart.dart';
 import '../widgets/alert_tile.dart';
 import '../widgets/app_limit_dialog.dart';
+import '../widgets/daily_goal_ring.dart';
+import '../widgets/level_up_dialog.dart';
+import '../../data/repositories/progress_repository.dart';
+import '../../domain/models/user_progress.dart';
+import 'journey_screen.dart';
 import 'focus_session_screen.dart';
 import 'settings_screen.dart';
 
@@ -23,6 +28,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final UsageRepository _repository = UsageRepository();
   final FocusRepository _focusRepository = FocusRepository();
   final UsageCollectorService _collector = UsageCollectorService();
+  final ProgressRepository _progressRepo = ProgressRepository();
+
+  UserProgress? _userProgress;
+  Map<String, dynamic>? _dailyGoalProgress;
 
   Map<String, int> _categoryTotals = {
     'productive': 0,
@@ -68,6 +77,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final topApps = await _repository.getTopAppsForToday();
       final streak = await _repository.getProductivityStreak();
 
+      // Stage 2: Sync progress, interventions & daily goal
+      final levelUp = await _progressRepo.syncFromUnrewardedInterventions();
+      await _progressRepo.syncDailyStreak();
+      final progress = await _progressRepo.getUserProgress();
+      final goal = await _progressRepo.getDailyGoalProgress();
+
+      if (levelUp != null && mounted) {
+        LevelUpDialog.show(context, newLevel: levelUp.newLevel, title: levelUp.title);
+      }
+
       if (mounted) {
         setState(() {
           _categoryTotals = totals;
@@ -78,6 +97,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _focusMinutesToday = focusMin;
           _topApps = topApps;
           _streakDays = streak;
+          _userProgress = progress;
+          _dailyGoalProgress = goal;
           _selectedCategory = null;
           _selectedDay = null;
           _selectedDayBreakdown = null;
@@ -107,6 +128,144 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _loadingMoreAlerts = false;
       });
     }
+  }
+
+  Widget _buildJourneyHeaderCard() {
+    if (_userProgress == null) return const SizedBox.shrink();
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const JourneyScreen()),
+        ).then((_) => _loadDashboardData());
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF303F9F), Color(0xFF1A237E)],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF303F9F).withValues(alpha: 0.25),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.military_tech_rounded, color: Colors.amber, size: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Level ${_userProgress!.level} · ${_userProgress!.levelTitle}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${_userProgress!.xp} XP · Reclaimed ${_userProgress!.formattedTimeReclaimed}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.white70),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDailyGoalDialog() {
+    if (_userProgress == null) return;
+    String selectedType = _userProgress!.dailyGoalType;
+    int target = _userProgress!.dailyGoalTarget;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text('Set Daily Focus Goal', style: TextStyle(fontWeight: FontWeight.bold)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Choose your daily target:', style: TextStyle(color: Color(0xFF5F6368), fontSize: 13)),
+                const SizedBox(height: 12),
+                RadioListTile<String>(
+                  title: const Text('Turn-backs from Distraction'),
+                  subtitle: const Text('Resist overlays (Recommended)'),
+                  value: 'turn_backs',
+                  groupValue: selectedType,
+                  onChanged: (val) => setDialogState(() {
+                    selectedType = val!;
+                    target = 3;
+                  }),
+                ),
+                RadioListTile<String>(
+                  title: const Text('Max Distraction Screen Time'),
+                  subtitle: const Text('Keep distracting apps under limit'),
+                  value: 'distracting_minutes',
+                  groupValue: selectedType,
+                  onChanged: (val) => setDialogState(() {
+                    selectedType = val!;
+                    target = 60;
+                  }),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(selectedType == 'turn_backs' ? 'Target Turn-backs:' : 'Target Minutes:'),
+                    DropdownButton<int>(
+                      value: target,
+                      items: (selectedType == 'turn_backs' ? [1, 2, 3, 5, 8] : [30, 45, 60, 90, 120])
+                          .map((n) => DropdownMenuItem(value: n, child: Text('$n')))
+                          .toList(),
+                      onChanged: (val) {
+                        if (val != null) setDialogState(() => target = val);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await _progressRepo.updateDailyGoal(selectedType, target);
+                  if (ctx.mounted) Navigator.of(ctx).pop();
+                  _loadDashboardData();
+                },
+                child: const Text('Save Goal'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   void _onCategoryTapped(String? category) {
@@ -327,6 +486,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Stage 2: Level & Journey Header Banner
+                    _buildJourneyHeaderCard(),
+                    const SizedBox(height: 12),
+
+                    // Stage 2: Daily Goal Ring
+                    if (_dailyGoalProgress != null) ...[
+                      DailyGoalRing(
+                        label: _dailyGoalProgress!['label'] as String,
+                        progressPercent: (_dailyGoalProgress!['percent'] as num).toDouble(),
+                        isAchieved: _dailyGoalProgress!['isAchieved'] as bool,
+                        onTap: _showDailyGoalDialog,
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+
                     // Productivity Score Hero Card (Tappable Breakdown)
                     GestureDetector(
                       onTap: () => _showScoreBreakdownSheet(
