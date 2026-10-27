@@ -65,10 +65,8 @@ class ProductivityScoreCalculator {
     required int productiveSeconds,
     required int distractingSeconds,
   }) {
-    return calculateCompositeScore(
-      productiveSeconds: productiveSeconds,
-      distractingSeconds: distractingSeconds,
-      focusMinutesToday: 0,
-    );
+    final total = productiveSeconds + distractingSeconds;
+    if (total == 0) return 50;
+    return ((productiveSeconds / total) * 100).round().clamp(0, 100);
   }
 }
