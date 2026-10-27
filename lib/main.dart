@@ -10,9 +10,9 @@ void main() async {
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-    systemNavigationBarColor: Colors.white,
-    systemNavigationBarIconBrightness: Brightness.dark,
+    statusBarIconBrightness: Brightness.light,
+    systemNavigationBarColor: Color(0xFF181827),
+    systemNavigationBarIconBrightness: Brightness.light,
   ));
 
   try {
@@ -35,6 +35,8 @@ class AIRoutineAssistantApp extends StatelessWidget {
       title: 'AI Routine Assistant',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.dark,
       home: const SplashScreen(),
     );
   }

@@ -24,15 +24,17 @@ class AlertTile extends StatelessWidget {
         ? AppColors.distractingContainer
         : AppColors.primaryContainer;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap ?? () => _showDetailSheet(context, alert),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
+          color: isDark ? const Color(0xFF181827) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: isDark ? const Color(0xFF2B2B44) : AppColors.border),
         ),
         child: Row(
           children: [
@@ -57,8 +59,8 @@ class AlertTile extends StatelessWidget {
                 children: [
                   Text(
                     alert.message,
-                    style: const TextStyle(
-                      color: Color(0xFF202124),
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF202124),
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -105,10 +107,11 @@ class AlertTile extends StatelessWidget {
   void _showDetailSheet(BuildContext context, RoutineAlert alert) {
     final isDistraction = alert.type == AlertType.distractionAlert;
     final color = isDistraction ? AppColors.distracting : AppColors.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF181827) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -123,7 +126,7 @@ class AlertTile extends StatelessWidget {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: isDark ? const Color(0xFF33334A) : Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -142,8 +145,8 @@ class AlertTile extends StatelessWidget {
                 Expanded(
                   child: Text(
                     isDistraction ? 'Distraction Alert' : 'Routine Detected',
-                    style: const TextStyle(
-                      color: Color(0xFF202124),
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF202124),
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -154,8 +157,8 @@ class AlertTile extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               alert.message,
-              style: const TextStyle(
-                color: Color(0xFF202124),
+              style: TextStyle(
+                color: isDark ? const Color(0xFFE0E0EC) : const Color(0xFF202124),
                 fontSize: 14,
                 height: 1.4,
               ),

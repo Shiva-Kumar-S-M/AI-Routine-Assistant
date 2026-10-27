@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/repositories/progress_repository.dart';
 import '../../domain/models/weekly_recap.dart';
+import '../widgets/chunky_button.dart';
 
 class WeeklyRecapScreen extends StatefulWidget {
   const WeeklyRecapScreen({super.key});
@@ -33,26 +34,28 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: const Color(0xFF0E0E18),
       appBar: AppBar(
         title: const Text(
           'Weekly Recap',
           style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF202124),
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            fontSize: 22,
+            letterSpacing: -0.3,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF0E0E18),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF202124)),
+          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF3D5AFE)))
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)))
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -61,14 +64,14 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF3D5AFE), Color(0xFF651FFF)],
+                        colors: [Color(0xFF7C4DFF), Color(0xFF651FFF)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(26),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF3D5AFE).withValues(alpha: 0.3),
+                          color: const Color(0xFF7C4DFF).withValues(alpha: 0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 6),
                         ),
@@ -83,8 +86,8 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
                             const Text(
                               'YOUR 7-DAY TRIUMPH',
                               style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
                                 letterSpacing: 1.2,
                                 color: Colors.white70,
                               ),
@@ -97,7 +100,7 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
                               ),
                               child: const Row(
                                 children: [
-                                  Icon(Icons.bolt_rounded, color: Colors.amber, size: 16),
+                                  Icon(Icons.bolt_rounded, color: Color(0xFFFFD700), size: 16),
                                   SizedBox(width: 4),
                                   Text(
                                     '100% OFFLINE',
@@ -133,7 +136,7 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 18),
 
                   // 2x2 Metric Cards
                   Row(
@@ -143,7 +146,7 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
                           title: 'Time Reclaimed',
                           value: _recap!.formattedTimeReclaimed,
                           icon: Icons.hourglass_top_rounded,
-                          color: const Color(0xFF00C853),
+                          color: const Color(0xFF00E676),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -165,7 +168,7 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
                           title: 'Best Focus Day',
                           value: _recap!.bestDayName,
                           icon: Icons.calendar_today_rounded,
-                          color: const Color(0xFF00B0FF),
+                          color: const Color(0xFF00E5FF),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -179,22 +182,15 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 22),
 
                   // Algorithmic Smart Tip Card
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE8EAED)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
+                      color: const Color(0xFF181827),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: const Color(0xFF2B2B44)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,10 +202,10 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
                             Text(
                               'AI ROUTINE ADVICE',
                               style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.8,
-                                color: Color(0xFF5F6368),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.2,
+                                color: Color(0xFF8E8EA2),
                               ),
                             ),
                           ],
@@ -219,37 +215,25 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
                           _recap!.smartTip,
                           style: const TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF202124),
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
                             height: 1.45,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
 
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF202124),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: const Text(
-                        'Keep Going',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                  ChunkyButton(
+                    text: 'Keep Crushing It',
+                    icon: Icons.check_circle_rounded,
+                    height: 54,
+                    borderRadius: 18,
+                    color: const Color(0xFF7C4DFF),
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -265,16 +249,9 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE8EAED)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: const Color(0xFF181827),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF2B2B44)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,7 +259,7 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
+              color: color.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 20),
@@ -292,8 +269,8 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
             value,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF202124),
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 2),
@@ -301,7 +278,7 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
             title,
             style: const TextStyle(
               fontSize: 12,
-              color: Color(0xFF70757A),
+              color: Color(0xFF8E8EA2),
             ),
           ),
         ],
@@ -309,4 +286,3 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
     );
   }
 }
-

@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-import '../../core/constants/app_colors.dart';
 
 typedef DayTapCallback = void Function(DateTime day);
 
 class TrendChart extends StatefulWidget {
-  final Map<DateTime, int> dailyTotals;
+  final Map<DateTime, int>? dailyTotals;
+  final Map<DateTime, int>? trendTotals;
   final DayTapCallback? onDayTapped;
   final DateTime? highlightedDay;
+  final DateTime? selectedDay;
 
   const TrendChart({
     super.key,
-    required this.dailyTotals,
+    this.dailyTotals,
+    this.trendTotals,
     this.onDayTapped,
     this.highlightedDay,
+    this.selectedDay,
   });
 
   @override
@@ -24,20 +27,23 @@ class TrendChart extends StatefulWidget {
 class _TrendChartState extends State<TrendChart> {
   int _touchedIndex = -1;
 
+  Map<DateTime, int> get _data => widget.dailyTotals ?? widget.trendTotals ?? {};
+  DateTime? get _activeDay => widget.highlightedDay ?? widget.selectedDay;
+
   @override
   Widget build(BuildContext context) {
-    if (widget.dailyTotals.isEmpty) {
+    if (_data.isEmpty) {
       return Container(
         height: 180,
         alignment: Alignment.center,
         child: const Text(
-          'No 7-day trend data available',
-          style: TextStyle(color: Color(0xFF5F6368), fontSize: 13),
+          'No 7-day trend data available yet',
+          style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 13),
         ),
       );
     }
 
-    final entries = widget.dailyTotals.entries.toList()
+    final entries = _data.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
 
     final spots = <FlSpot>[
@@ -54,9 +60,9 @@ class _TrendChartState extends State<TrendChart> {
             gridData: FlGridData(
               show: true,
               getDrawingHorizontalLine: (_) =>
-                  const FlLine(color: Color(0xFFE8EAED), strokeWidth: 1),
+                  const FlLine(color: Color(0xFF26263A), strokeWidth: 1),
               getDrawingVerticalLine: (_) =>
-                  const FlLine(color: Color(0xFFE8EAED), strokeWidth: 1),
+                  const FlLine(color: Color(0xFF26263A), strokeWidth: 1),
             ),
             titlesData: FlTitlesData(
               rightTitles:
@@ -69,16 +75,16 @@ class _TrendChartState extends State<TrendChart> {
                   getTitlesWidget: (value, meta) {
                     final index = value.toInt();
                     if (index >= 0 && index < entries.length) {
-                      final isHighlighted = widget.highlightedDay != null &&
-                          _sameDay(entries[index].key, widget.highlightedDay!);
+                      final isHighlighted = _activeDay != null &&
+                          _sameDay(entries[index].key, _activeDay!);
                       return Padding(
                         padding: const EdgeInsets.only(top: 6.0),
                         child: Text(
                           DateFormat('E').format(entries[index].key),
                           style: TextStyle(
                             color: isHighlighted
-                                ? AppColors.primary
-                                : const Color(0xFF5F6368),
+                                ? const Color(0xFF00E5FF)
+                                : const Color(0xFF8E8EA2),
                             fontSize: 11,
                             fontWeight: isHighlighted
                                 ? FontWeight.bold
@@ -98,7 +104,7 @@ class _TrendChartState extends State<TrendChart> {
                   getTitlesWidget: (value, meta) => Text(
                     '${value.toInt()}h',
                     style: const TextStyle(
-                      color: Color(0xFF5F6368),
+                      color: Color(0xFF8E8EA2),
                       fontSize: 11,
                     ),
                   ),
@@ -140,29 +146,37 @@ class _TrendChartState extends State<TrendChart> {
               LineChartBarData(
                 spots: spots,
                 isCurved: true,
-                color: AppColors.primary,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF7C4DFF), Color(0xFF00E5FF)],
+                ),
                 barWidth: 3.5,
                 dotData: FlDotData(
                   show: true,
                   getDotPainter: (spot, percent, barData, index) {
                     final isHighlighted = _touchedIndex == index ||
-                        (widget.highlightedDay != null &&
+                        (_activeDay != null &&
                             index < entries.length &&
-                            _sameDay(entries[index].key,
-                                widget.highlightedDay!));
+                            _sameDay(entries[index].key, _activeDay!));
                     return FlDotCirclePainter(
                       radius: isHighlighted ? 7 : 4,
                       color: isHighlighted
-                          ? Colors.white
-                          : AppColors.primary,
+                          ? const Color(0xFF00E5FF)
+                          : const Color(0xFF7C4DFF),
                       strokeWidth: isHighlighted ? 3 : 0,
-                      strokeColor: AppColors.primary,
+                      strokeColor: Colors.white,
                     );
                   },
                 ),
                 belowBarData: BarAreaData(
                   show: true,
-                  color: AppColors.primary.withValues(alpha: 0.12),
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF7C4DFF).withValues(alpha: 0.3),
+                      const Color(0xFF00E5FF).withValues(alpha: 0.0),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
               ),
             ],

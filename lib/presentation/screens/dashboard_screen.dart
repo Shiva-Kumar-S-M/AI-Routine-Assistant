@@ -11,11 +11,13 @@ import '../widgets/alert_tile.dart';
 import '../widgets/app_limit_dialog.dart';
 import '../widgets/daily_goal_ring.dart';
 import '../widgets/level_up_dialog.dart';
+import '../widgets/chunky_button.dart';
 import '../../data/repositories/progress_repository.dart';
 import '../../domain/models/user_progress.dart';
 import 'journey_screen.dart';
 import 'focus_session_screen.dart';
 import 'settings_screen.dart';
+import 'brain_gym/math_sprint_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -65,8 +67,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     try {
       await _collector.collectAndSaveLogs(window: const Duration(hours: 24));
-      // Fix any stale rows where app_name == package_name using resolved names
-      // already present in the DB from the sync above. Pure SQL — no MethodChannel.
       await _repository.backfillStaleAppNames();
 
       final totals = await _repository.getCategoryScreenTimeForToday();
@@ -99,17 +99,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _streakDays = streak;
           _userProgress = progress;
           _dailyGoalProgress = goal;
-          _selectedCategory = null;
-          _selectedDay = null;
-          _selectedDayBreakdown = null;
+          _isLoading = false;
         });
       }
-    } catch (e, stack) {
-      debugPrint('Error loading dashboard data: $e\n$stack');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -117,116 +111,89 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_loadingMoreAlerts || !_hasMoreAlerts) return;
     setState(() => _loadingMoreAlerts = true);
 
-    final more = await _repository.getNotificationsPage(
-        limit: _pageSize, offset: _alertsOffset);
-
-    if (mounted) {
-      setState(() {
-        _recentAlerts.addAll(more);
-        _alertsOffset += more.length;
-        _hasMoreAlerts = more.length == _pageSize;
-        _loadingMoreAlerts = false;
-      });
+    try {
+      final next = await _repository.getNotificationsPage(
+          limit: _pageSize, offset: _alertsOffset);
+      if (mounted) {
+        setState(() {
+          _recentAlerts.addAll(next);
+          _alertsOffset += next.length;
+          _hasMoreAlerts = next.length == _pageSize;
+          _loadingMoreAlerts = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loadingMoreAlerts = false);
     }
   }
 
-  Widget _buildJourneyHeaderCard() {
-    if (_userProgress == null) return const SizedBox.shrink();
-    return InkWell(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const JourneyScreen()),
-        ).then((_) => _loadDashboardData());
-      },
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF303F9F), Color(0xFF1A237E)],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF303F9F).withValues(alpha: 0.25),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.military_tech_rounded, color: Colors.amber, size: 24),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Level ${_userProgress!.level} · ${_userProgress!.levelTitle}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '${_userProgress!.xp} XP · Reclaimed ${_userProgress!.formattedTimeReclaimed}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 11),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right_rounded, color: Colors.white70),
-          ],
-        ),
-      ),
-    );
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning, Focus Master ☀️';
+    if (hour < 17) return 'Good Afternoon, Attention Hero ⚡';
+    return 'Good Evening, Discipline Warrior 🌙';
   }
 
   void _showDailyGoalDialog() {
-    if (_userProgress == null) return;
-    String selectedType = _userProgress!.dailyGoalType;
-    int target = _userProgress!.dailyGoalTarget;
+    String selectedType = _dailyGoalProgress?['goalType'] ?? 'turn_backs';
+    int target = _dailyGoalProgress?['target'] ?? 3;
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Text('Set Daily Focus Goal', style: TextStyle(fontWeight: FontWeight.bold)),
+            backgroundColor: const Color(0xFF181827),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+              side: const BorderSide(color: Color(0xFF2D2D46)),
+            ),
+            title: const Text('Set Daily Focus Goal',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Choose your daily target:', style: TextStyle(color: Color(0xFF5F6368), fontSize: 13)),
+                const Text('Choose your daily target:',
+                    style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 13)),
                 const SizedBox(height: 12),
-                RadioListTile<String>(
-                  title: const Text('Turn-backs from Distraction'),
-                  subtitle: const Text('Resist overlays (Recommended)'),
-                  value: 'turn_backs',
-                  groupValue: selectedType,
-                  onChanged: (val) => setDialogState(() {
-                    selectedType = val!;
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Radio<String>(
+                    value: 'turn_backs',
+                    groupValue: selectedType,
+                    activeColor: const Color(0xFF7C4DFF),
+                    onChanged: (val) => setDialogState(() {
+                      selectedType = val!;
+                      target = 3;
+                    }),
+                  ),
+                  title: const Text('Turn-backs from Distraction',
+                      style: TextStyle(color: Colors.white, fontSize: 14)),
+                  subtitle: const Text('Resist overlays (Recommended)',
+                      style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 12)),
+                  onTap: () => setDialogState(() {
+                    selectedType = 'turn_backs';
                     target = 3;
                   }),
                 ),
-                RadioListTile<String>(
-                  title: const Text('Max Distraction Screen Time'),
-                  subtitle: const Text('Keep distracting apps under limit'),
-                  value: 'distracting_minutes',
-                  groupValue: selectedType,
-                  onChanged: (val) => setDialogState(() {
-                    selectedType = val!;
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Radio<String>(
+                    value: 'distracting_minutes',
+                    groupValue: selectedType,
+                    activeColor: const Color(0xFF7C4DFF),
+                    onChanged: (val) => setDialogState(() {
+                      selectedType = val!;
+                      target = 60;
+                    }),
+                  ),
+                  title: const Text('Max Distraction Screen Time',
+                      style: TextStyle(color: Colors.white, fontSize: 14)),
+                  subtitle: const Text('Keep distracting apps under limit',
+                      style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 12)),
+                  onTap: () => setDialogState(() {
+                    selectedType = 'distracting_minutes';
                     target = 60;
                   }),
                 ),
@@ -234,9 +201,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(selectedType == 'turn_backs' ? 'Target Turn-backs:' : 'Target Minutes:'),
+                    Text(
+                      selectedType == 'turn_backs' ? 'Target Turn-backs:' : 'Target Minutes:',
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                    ),
                     DropdownButton<int>(
                       value: target,
+                      dropdownColor: const Color(0xFF222238),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                       items: (selectedType == 'turn_backs' ? [1, 2, 3, 5, 8] : [30, 45, 60, 90, 120])
                           .map((n) => DropdownMenuItem(value: n, child: Text('$n')))
                           .toList(),
@@ -251,7 +223,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Cancel'),
+                child: const Text('Cancel', style: TextStyle(color: Color(0xFF8E8EA2))),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -259,7 +231,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   if (ctx.mounted) Navigator.of(ctx).pop();
                   _loadDashboardData();
                 },
-                child: const Text('Save Goal'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7C4DFF),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                child: const Text('Save Goal', style: TextStyle(color: Colors.white)),
               ),
             ],
           );
@@ -298,18 +274,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return _recentAlerts.where((alert) {
       final isDistraction = alert.type == AlertType.distractionAlert;
       if (_selectedCategory == 'distracting') return isDistraction;
-      if (_selectedCategory == 'productive') return !isDistraction;
-      return true;
+      return !isDistraction;
     }).toList();
   }
 
   String _formatMinutes(int minutes) {
     if (minutes < 60) return '${minutes}m';
-    return '${minutes ~/ 60}h ${minutes % 60}m';
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    return m == 0 ? '${h}h' : '${h}h ${m}m';
   }
 
-  Color _getCategoryColor(String cat) {
-    switch (cat) {
+  Color _getCategoryColor(String category) {
+    switch (category) {
       case 'productive':
         return AppColors.productive;
       case 'distracting':
@@ -319,30 +296,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  void _showScoreBreakdownSheet(int score, int productiveSecs, int distractingSecs) {
+  void _showScoreBreakdownSheet(
+      int score, int productiveSecs, int distractingSecs) {
     final totalSecs = productiveSecs + distractingSecs;
-    final distractionRatioPct = totalSecs > 0
-        ? ((1.0 - (distractingSecs / totalSecs)) * 100).round()
-        : 50;
+    final distractionRatioPct =
+        totalSecs > 0 ? ((1 - (distractingSecs / totalSecs)) * 100).round() : 100;
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => Padding(
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
         padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Color(0xFF181827),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border(top: BorderSide(color: Color(0xFF2D2D46))),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
               child: Container(
-                width: 36,
+                width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: const Color(0xFF383854),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -356,7 +335,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF202124),
+                    color: Colors.white,
                   ),
                 ),
                 Text(
@@ -369,10 +348,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             const Text(
-              'Your score is calculated on-device from 3 weighted signal metrics:',
-              style: TextStyle(color: Color(0xFF5F6368), fontSize: 13),
+              'Your score is computed 100% on-device from 3 weighted signal metrics:',
+              style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 13),
             ),
             const SizedBox(height: 16),
             _signalRow('Distraction Ratio (45%)', '$distractionRatioPct pts', AppColors.primary),
@@ -401,17 +380,400 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(width: 10),
               Text(title,
                   style: const TextStyle(
-                      color: Color(0xFF202124),
+                      color: Colors.white,
                       fontSize: 13,
                       fontWeight: FontWeight.w600)),
             ],
           ),
           Text(detail,
               style: const TextStyle(
-                  color: Color(0xFF5F6368),
+                  color: Color(0xFF9E9EAF),
                   fontSize: 12,
                   fontWeight: FontWeight.bold)),
         ],
+      ),
+    );
+  }
+
+  // ── Stage 4 Components ─────────────────────────────────────────────────────
+
+  Widget _buildGreetingAndStreakHeader() {
+    final streak = _userProgress?.dailyStreak ?? _streakDays;
+    final freezes = _userProgress?.streakFreezesAvailable ?? 0;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _getGreeting(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 3),
+              const Text(
+                'AI Routine Assistant • 100% On-Device',
+                style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF381518), Color(0xFF281119)],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFFF5722).withValues(alpha: 0.5)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFF5722), size: 20),
+              const SizedBox(width: 4),
+              Text(
+                '${streak}d',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              if (freezes > 0) ...[
+                const SizedBox(width: 6),
+                const Icon(Icons.shield_rounded, color: Color(0xFF00E5FF), size: 14),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLevelAndXpBar() {
+    if (_userProgress == null) return const SizedBox.shrink();
+
+    final p = _userProgress!;
+    final levelProgress = p.progressTowardsNextLevel;
+
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const JourneyScreen()),
+        ).then((_) => _loadDashboardData());
+      },
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF2B1D4E), Color(0xFF1E1738)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFF563B8C)),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7C4DFF).withValues(alpha: 0.25),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFF7C4DFF)),
+                  ),
+                  child: const Icon(Icons.military_tech_rounded, color: Color(0xFFFFD700), size: 24),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Level ${p.level} • ${p.levelTitle}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '${p.xp} Total XP',
+                            style: const TextStyle(
+                              color: Color(0xFFFFD700),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        '${p.currentLevelXp} / ${p.xpNeededForNextLevel} XP to Level ${p.level + 1}',
+                        style: const TextStyle(color: Color(0xFF9E9EAF), fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: levelProgress.clamp(0.0, 1.0),
+                minHeight: 8,
+                backgroundColor: const Color(0xFF332A55),
+                valueColor: const AlwaysStoppedAnimation(Color(0xFF7C4DFF)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeReclaimedHeroCard() {
+    final reclaimedStr = _userProgress?.formattedTimeReclaimed ?? '0m';
+    final turnBacks = _userProgress?.totalTurnBacks ?? 0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF181827),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF2B2B44)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF00E676).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.timer_rounded, color: Color(0xFF00E676), size: 24),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$reclaimedStr Reclaimed',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Saved across $turnBacks resisted distraction impulses this month',
+                  style: const TextStyle(color: Color(0xFF8E8EA2), fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.auto_graph_rounded, color: Color(0xFF00E676), size: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBrainGymQuickStartCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF281C3F), Color(0xFF161E36)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFF483568)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [Color(0xFFFF9100), Color(0xFFFF3D00)]),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 26),
+          ),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'BRAIN GYM SPRINT',
+                  style: TextStyle(
+                    color: Color(0xFFFF9100),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  '60s Mental Math Blitz',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Rapid impulse deflection • +20 XP',
+                  style: TextStyle(color: Color(0xFF9E9EAF), fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const MathSprintScreen()),
+              ).then((_) => _loadDashboardData());
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF9100),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            ),
+            child: const Text('Sprint', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductivityScoreCard(int score, String scoreDesc, Color scoreColor,
+      Color scoreContainerColor, int productiveSecs, int distractingSecs) {
+    return GestureDetector(
+      onTap: () => _showScoreBreakdownSheet(score, productiveSecs, distractingSecs),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF181827),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFF2B2B44)),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Text(
+                            'Productivity Score',
+                            style: TextStyle(
+                              color: Color(0xFF8E8EA2),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(Icons.info_outline, size: 14, color: Color(0xFF6E6E84)),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        scoreDesc,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: 68,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color: scoreContainerColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: scoreColor.withValues(alpha: 0.5),
+                      width: 2,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$score',
+                      style: TextStyle(
+                        color: scoreColor,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(color: Color(0xFF28283C), height: 1),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: _metricPill(
+                    icon: Icons.timer_outlined,
+                    label: 'Focus',
+                    value: _formatMinutes(_focusMinutesToday),
+                    color: AppColors.productive,
+                    bg: const Color(0xFF122C24),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _metricPill(
+                    icon: Icons.warning_amber_rounded,
+                    label: 'Distraction',
+                    value: '${(distractingSecs / 60).round()}m',
+                    color: AppColors.distracting,
+                    bg: const Color(0xFF331620),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _metricPill(
+                    icon: Icons.check_circle_outline,
+                    label: 'Productive',
+                    value: '${(productiveSecs / 60).round()}m',
+                    color: AppColors.primary,
+                    bg: const Color(0xFF221A3D),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -430,43 +792,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final scoreContainerColor = AppColors.scoreContainerColor(score);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: const Color(0xFF0E0E18),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF0E0E18),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: Color(0xFF1A73E8),
-                shape: BoxShape.circle,
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Color(0xFF7C4DFF), Color(0xFF651FFF)]),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
-                Icons.psychology_outlined,
-                color: Colors.white,
-                size: 20,
-              ),
+              child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 10),
             const Text(
-              'AI Routine Assistant',
+              'Focus Assistant',
               style: TextStyle(
-                color: Color(0xFF202124),
+                color: Colors.white,
                 fontSize: 19,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.3,
               ),
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF5F6368)),
+            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF8E8EA2)),
             onPressed: _loadDashboardData,
             tooltip: 'Refresh Data',
           ),
           IconButton(
-            icon: const Icon(Icons.timer_outlined, color: Color(0xFF5F6368)),
+            icon: const Icon(Icons.timer_outlined, color: Color(0xFF8E8EA2)),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const FocusSessionScreen()),
             ),
@@ -475,22 +834,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary))
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)))
           : RefreshIndicator(
               onRefresh: _loadDashboardData,
-              color: AppColors.primary,
+              color: const Color(0xFF7C4DFF),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Stage 2: Level & Journey Header Banner
-                    _buildJourneyHeaderCard(),
+                    // 1. Greeting & Streak Flame Header
+                    _buildGreetingAndStreakHeader(),
+                    const SizedBox(height: 14),
+
+                    // 2. Level & XP Progress Bar
+                    _buildLevelAndXpBar(),
                     const SizedBox(height: 12),
 
-                    // Stage 2: Daily Goal Ring
+                    // 3. Time Reclaimed Hero Stat
+                    _buildTimeReclaimedHeroCard(),
+                    const SizedBox(height: 12),
+
+                    // 4. Daily Goal Ring
                     if (_dailyGoalProgress != null) ...[
                       DailyGoalRing(
                         label: _dailyGoalProgress!['label'] as String,
@@ -498,232 +864,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         isAchieved: _dailyGoalProgress!['isAchieved'] as bool,
                         onTap: _showDailyGoalDialog,
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 12),
                     ],
 
-                    // Productivity Score Hero Card (Tappable Breakdown)
-                    GestureDetector(
-                      onTap: () => _showScoreBreakdownSheet(
-                          score, productiveSecs, distractingSecs),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.border),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.03),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          const Text(
-                                            'Productivity Score',
-                                            style: TextStyle(
-                                              color: Color(0xFF5F6368),
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          const Icon(Icons.info_outline,
-                                              size: 14, color: Color(0xFF80868B)),
-                                          if (_streakDays > 0) ...[
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFFFEF7E0),
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  const Icon(
-                                                    Icons.star_rounded,
-                                                    size: 12,
-                                                    color: Color(0xFFF9AB00),
-                                                  ),
-                                                  const SizedBox(width: 2),
-                                                  Text(
-                                                    '${_streakDays}d streak',
-                                                    style: const TextStyle(
-                                                      fontSize: 10,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Color(0xFFB06000),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        scoreDesc,
-                                        style: const TextStyle(
-                                          color: Color(0xFF202124),
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  width: 68,
-                                  height: 68,
-                                  decoration: BoxDecoration(
-                                    color: scoreContainerColor,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color:
-                                          scoreColor.withValues(alpha: 0.3),
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '$score',
-                                      style: TextStyle(
-                                        color: scoreColor,
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                    // 5. Quick-Start Brain Gym Blitz Card
+                    _buildBrainGymQuickStartCard(),
+                    const SizedBox(height: 14),
 
-                            const SizedBox(height: 16),
-                            const Divider(color: AppColors.border, height: 1),
-                            const SizedBox(height: 14),
+                    // 6. Productivity Score Hero Card
+                    _buildProductivityScoreCard(score, scoreDesc, scoreColor, scoreContainerColor,
+                        productiveSecs, distractingSecs),
+                    const SizedBox(height: 16),
 
-                            // Sub-metrics Pill Bar
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _metricPill(
-                                    icon: Icons.timer_outlined,
-                                    label: 'Focus',
-                                    value: _formatMinutes(_focusMinutesToday),
-                                    color: AppColors.productive,
-                                    bg: AppColors.productiveContainer,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: _metricPill(
-                                    icon: Icons.warning_amber_rounded,
-                                    label: 'Distraction',
-                                    value:
-                                        '${(distractingSecs / 60).round()}m',
-                                    color: AppColors.distracting,
-                                    bg: AppColors.distractingContainer,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: _metricPill(
-                                    icon: Icons.check_circle_outline,
-                                    label: 'Productive',
-                                    value:
-                                        '${(productiveSecs / 60).round()}m',
-                                    color: AppColors.primary,
-                                    bg: AppColors.primaryContainer,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Quick Actions Bar (Fully Functional)
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          ElevatedButton.icon(
+                    // Quick Actions
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ChunkyButton(
+                            text: 'Start Focus',
+                            icon: Icons.play_arrow_rounded,
+                            height: 48,
+                            borderRadius: 16,
+                            gradient: const [Color(0xFF7C4DFF), Color(0xFF651FFF)],
                             onPressed: () {
                               Navigator.of(context).push(
-                                MaterialPageRoute(
-                                    builder: (_) =>
-                                        const FocusSessionScreen()),
+                                MaterialPageRoute(builder: (_) => const FocusSessionScreen()),
                               );
                             },
-                            icon: const Icon(Icons.play_arrow_rounded,
-                                size: 18),
-                            label: const Text('Start Focus'),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 10),
-                            ),
                           ),
-                          const SizedBox(width: 8),
-                          OutlinedButton.icon(
-                            onPressed: _loadDashboardData,
-                            icon: const Icon(Icons.autorenew_rounded,
-                                size: 18),
-                            label: const Text('Sync Logs'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 10),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          OutlinedButton.icon(
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ChunkyButton(
+                            text: 'App Limits',
+                            icon: Icons.tune_rounded,
+                            height: 48,
+                            borderRadius: 16,
+                            isSecondary: true,
                             onPressed: () {
                               Navigator.of(context).push(
-                                MaterialPageRoute(
-                                    builder: (_) => const SettingsScreen()),
+                                MaterialPageRoute(builder: (_) => const SettingsScreen()),
                               );
                             },
-                            icon: const Icon(Icons.tune_rounded, size: 18),
-                            label: const Text('App Limits'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 10),
-                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-
                     const SizedBox(height: 24),
 
-                    // Top 3 Apps Used Today (Tappable for App Limits)
+                    // Top Apps Used Today
                     if (_topApps.isNotEmpty) ...[
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Top Apps Used Today',
+                            'Top Apps Today',
                             style: TextStyle(
-                              color: Color(0xFF202124),
+                              color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -731,7 +928,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Text(
                             'Tap to set limit',
                             style: TextStyle(
-                              color: AppColors.primary,
+                              color: Color(0xFF7C4DFF),
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                             ),
@@ -740,29 +937,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(height: 10),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border),
+                          color: const Color(0xFF181827),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFF2B2B44)),
                         ),
                         child: Column(
                           children: _topApps.asMap().entries.map((entry) {
                             final idx = entry.key;
                             final app = entry.value;
-                            final catColor =
-                                _getCategoryColor(app['category'] as String);
-                            final durationSecs =
-                                app['durationSeconds'] as int;
+                            final catColor = _getCategoryColor(app['category'] as String);
+                            final durationSecs = app['durationSeconds'] as int;
                             final pkgName = app['packageName'] as String;
                             final appName = app['appName'] as String;
 
                             return Column(
                               children: [
                                 if (idx > 0)
-                                  const Divider(
-                                      color: AppColors.border, height: 16),
+                                  const Divider(color: Color(0xFF28283C), height: 16),
                                 InkWell(
                                   onTap: () {
                                     showDialog(
@@ -776,37 +969,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   },
                                   borderRadius: BorderRadius.circular(10),
                                   child: Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 4),
+                                    padding: const EdgeInsets.symmetric(vertical: 4),
                                     child: Row(
                                       children: [
                                         CircleAvatar(
                                           radius: 18,
-                                          backgroundColor:
-                                              catColor.withValues(alpha: 0.1),
-                                          child: Icon(
-                                            Icons.android_rounded,
-                                            size: 20,
-                                            color: catColor,
-                                          ),
+                                          backgroundColor: catColor.withValues(alpha: 0.15),
+                                          child: Icon(Icons.android_rounded, size: 20, color: catColor),
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 appName,
                                                 style: const TextStyle(
-                                                  fontWeight: FontWeight.w600,
+                                                  fontWeight: FontWeight.w700,
                                                   fontSize: 14,
-                                                  color: Color(0xFF202124),
+                                                  color: Colors.white,
                                                 ),
                                               ),
                                               Text(
-                                                (app['category'] as String)
-                                                    .toUpperCase(),
+                                                (app['category'] as String).toUpperCase(),
                                                 style: TextStyle(
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.bold,
@@ -821,12 +1006,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 13,
-                                            color: Color(0xFF202124),
+                                            color: Colors.white,
                                           ),
                                         ),
                                         const SizedBox(width: 4),
-                                        const Icon(Icons.edit_outlined,
-                                            size: 16, color: Color(0xFF80868B)),
+                                        const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF6E6E84)),
                                       ],
                                     ),
                                   ),
@@ -839,14 +1023,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 24),
                     ],
 
-                    // Donut Chart
+                    // Screen Time Donut Breakdown
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
                           "Today's Screen Time",
                           style: TextStyle(
-                            color: Color(0xFF202124),
+                            color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -855,20 +1039,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           GestureDetector(
                             onTap: () => _onCategoryTapped(null),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.primaryContainer,
+                                color: const Color(0xFF261D4E),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Row(
                                 children: [
-                                  Icon(Icons.close,
-                                      color: AppColors.primary, size: 14),
+                                  Icon(Icons.close, color: Color(0xFF7C4DFF), size: 14),
                                   SizedBox(width: 4),
                                   Text('Clear filter',
                                       style: TextStyle(
-                                          color: AppColors.primary,
+                                          color: Color(0xFF7C4DFF),
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600)),
                                 ],
@@ -881,9 +1063,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
+                        color: const Color(0xFF181827),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFF2B2B44)),
                       ),
                       child: CategoryChart(
                         categoryTotals: _categoryTotals,
@@ -893,11 +1075,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Trend Line Chart
+                    // 7-Day Trend Chart
                     const Text(
                       '7-Day Screen Time Trend',
                       style: TextStyle(
-                        color: Color(0xFF202124),
+                        color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -906,99 +1088,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
+                        color: const Color(0xFF181827),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFF2B2B44)),
                       ),
                       child: TrendChart(
-                        dailyTotals: _trendTotals,
+                        trendTotals: _trendTotals,
                         onDayTapped: _onDayTapped,
-                        highlightedDay: _selectedDay,
+                        selectedDay: _selectedDay,
                       ),
                     ),
 
-                    if (_selectedDay != null && _selectedDayBreakdown != null)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.primary),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(Icons.calendar_today,
-                                        color: AppColors.primary, size: 16),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      '${_selectedDay!.day}/${_selectedDay!.month}/${_selectedDay!.year} breakdown',
-                                      style: const TextStyle(
-                                        color: Color(0xFF202124),
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    GestureDetector(
-                                      onTap: () => setState(() {
-                                        _selectedDay = null;
-                                        _selectedDayBreakdown = null;
-                                      }),
-                                      child: const Icon(Icons.close,
-                                          color: Color(0xFF5F6368), size: 18),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                CategoryChart(
-                                    categoryTotals: _selectedDayBreakdown!),
-                              ],
-                            ),
-                          ),
-                        ],
+                    if (_selectedDay != null && _selectedDayBreakdown != null) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF202035),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFF33334E)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _miniBreakdown('Productive', _selectedDayBreakdown!['productive'] ?? 0, AppColors.productive),
+                            _miniBreakdown('Distracting', _selectedDayBreakdown!['distracting'] ?? 0, AppColors.distracting),
+                            _miniBreakdown('Neutral', _selectedDayBreakdown!['neutral'] ?? 0, AppColors.neutral),
+                          ],
+                        ),
                       ),
+                    ],
 
                     const SizedBox(height: 24),
 
-                    // Recent AI Alerts
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Recent AI Alerts & Routines',
-                          style: TextStyle(
-                            color: Color(0xFF202124),
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                    // Intervention Alerts List
+                    if (_filteredAlerts.isNotEmpty) ...[
+                      const Text(
+                        'Recent Interventions & Routines',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
-                        if (_selectedCategory != null)
-                          Text(
-                            'Filtered: $_selectedCategory',
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-
-                    if (_filteredAlerts.isEmpty)
-                      _buildAlertsEmptyState()
-                    else
+                      ),
+                      const SizedBox(height: 10),
                       Column(
                         children: [
-                          ..._filteredAlerts
-                              .map((alert) => AlertTile(alert: alert)),
+                          ..._filteredAlerts.map((alert) => AlertTile(alert: alert)),
                           if (_hasMoreAlerts && _selectedCategory == null)
                             Padding(
                               padding: const EdgeInsets.only(top: 8.0),
@@ -1006,29 +1142,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ? const Center(
                                       child: Padding(
                                         padding: EdgeInsets.all(12),
-                                        child: CircularProgressIndicator(
-                                            color: AppColors.primary),
+                                        child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
                                       ),
                                     )
                                   : OutlinedButton.icon(
                                       onPressed: _loadMoreAlerts,
-                                      icon: const Icon(Icons.expand_more,
-                                          size: 18),
+                                      icon: const Icon(Icons.expand_more, size: 18),
                                       label: const Text('Load More Alerts'),
                                       style: OutlinedButton.styleFrom(
-                                        minimumSize:
-                                            const Size.fromHeight(42),
+                                        minimumSize: const Size.fromHeight(44),
+                                        side: const BorderSide(color: Color(0xFF2B2B44)),
                                       ),
                                     ),
                             ),
                         ],
                       ),
+                    ],
 
                     const SizedBox(height: 32),
                   ],
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _miniBreakdown(String label, int seconds, Color color) {
+    return Column(
+      children: [
+        Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 2),
+        Text(_formatMinutes(seconds ~/ 60),
+            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+      ],
     );
   }
 
@@ -1043,7 +1189,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1056,7 +1202,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 label,
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.bold,
                   color: color,
                 ),
               ),
@@ -1067,47 +1213,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             value,
             style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
               color: color,
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAlertsEmptyState() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.notifications_none_outlined,
-            color: Color(0xFF80868B),
-            size: 44,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _selectedCategory != null
-                ? 'No alerts for "$_selectedCategory" apps'
-                : 'No alerts or routines detected yet',
-            style: const TextStyle(color: Color(0xFF5F6368), fontSize: 13),
-            textAlign: TextAlign.center,
-          ),
-          if (_selectedCategory != null) ...[
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => _onCategoryTapped(null),
-              child: const Text('Clear filter'),
-            ),
-          ],
         ],
       ),
     );

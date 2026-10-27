@@ -16,44 +16,49 @@ class DailyGoalRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryColor = isAchieved ? const Color(0xFF00C853) : const Color(0xFF3D5AFE);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isAchieved ? const Color(0xFF00E676) : const Color(0xFF7C4DFF);
+    final cardBg = isDark ? const Color(0xFF181827) : Colors.white;
+    final borderColor = isAchieved
+        ? const Color(0xFF00E676).withValues(alpha: 0.4)
+        : (isDark ? const Color(0xFF2B2B44) : const Color(0xFFE8EAED));
+    final ringBg = isDark ? const Color(0xFF24243A) : const Color(0xFFEEEEF4);
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(22),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          color: cardBg,
+          borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: isAchieved
+                  ? const Color(0xFF00E676).withValues(alpha: 0.12)
+                  : Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
           ],
           border: Border.all(
-            color: isAchieved
-                ? const Color(0xFF00C853).withValues(alpha: 0.3)
-                : const Color(0xFFE8EAED),
+            color: borderColor,
             width: 1.5,
           ),
         ),
         child: Row(
           children: [
-            // Animated Radial Ring
+            // Radial Ring
             SizedBox(
-              width: 56,
-              height: 56,
+              width: 58,
+              height: 58,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   CircularProgressIndicator(
-                    value: progressPercent,
-                    strokeWidth: 6,
-                    backgroundColor: const Color(0xFFEEEEF4),
+                    value: progressPercent.clamp(0.0, 1.0),
+                    strokeWidth: 6.5,
+                    backgroundColor: ringBg,
                     valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                     strokeCap: StrokeCap.round,
                   ),
@@ -61,7 +66,7 @@ class DailyGoalRing extends StatelessWidget {
                     child: Icon(
                       isAchieved ? Icons.check_circle_rounded : Icons.flag_rounded,
                       color: primaryColor,
-                      size: 24,
+                      size: 26,
                     ),
                   ),
                 ],
@@ -78,25 +83,25 @@ class DailyGoalRing extends StatelessWidget {
                         'DAILY GOAL',
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.8,
-                          color: isAchieved ? const Color(0xFF00C853) : const Color(0xFF5F6368),
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                          color: isAchieved ? const Color(0xFF00E676) : const Color(0xFF8E8EA2),
                         ),
                       ),
                       if (isAchieved) ...[
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00C853).withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
+                            color: const Color(0xFF00E676).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
-                            'COMPLETED',
+                            'ACHIEVED',
                             style: TextStyle(
                               fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF00C853),
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF00E676),
                             ),
                           ),
                         ),
@@ -106,25 +111,27 @@ class DailyGoalRing extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     label,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF202124),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : const Color(0xFF202124),
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${(progressPercent * 100).toInt()}% achieved · Tap to adjust',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF70757A),
+                    '${(progressPercent * 100).toInt()}% towards target • Tap to configure',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? const Color(0xFF8E8EA2) : const Color(0xFF5F6368),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.chevron_right_rounded,
-              color: Color(0xFF9AA0A6),
+              color: isDark ? const Color(0xFF5A5A74) : const Color(0xFF9AA0A6),
+              size: 22,
             ),
           ],
         ),
@@ -132,4 +139,3 @@ class DailyGoalRing extends StatelessWidget {
     );
   }
 }
-

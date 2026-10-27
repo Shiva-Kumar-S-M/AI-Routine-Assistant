@@ -69,6 +69,13 @@ class UserProgress {
     return (nextTarget - xp).clamp(0, nextTarget);
   }
 
+  int get currentLevelXp => xp - xpForCurrentLevel;
+  int get xpNeededForNextLevel => xpForNextLevel - xpForCurrentLevel;
+  int get dailyStreak => streakDays;
+  int get streakFreezesAvailable => streakFreezes;
+  double get progressTowardsNextLevel => levelProgress;
+  int get totalTurnBacks => timeReclaimedSeconds ~/ 300;
+
   String get formattedTimeReclaimed {
     final mins = timeReclaimedSeconds ~/ 60;
     if (mins < 60) {

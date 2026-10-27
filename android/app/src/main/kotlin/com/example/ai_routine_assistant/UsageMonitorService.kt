@@ -378,19 +378,20 @@ class UsageMonitorService : Service() {
 
             // Button 1: "Take me back" (Primary)
             val btnTakeBack = Button(this@UsageMonitorService).apply {
-                text = "Take me back"
+                text = "⚡ Take me back (+20 XP)"
                 setTextColor(Color.WHITE)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
                 setTypeface(typeface, Typeface.BOLD)
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#3D5AFE"))
-                    cornerRadius = dpToPx(16).toFloat()
+                    colors = intArrayOf(Color.parseColor("#7C4DFF"), Color.parseColor("#651FFF"))
+                    orientation = GradientDrawable.Orientation.LEFT_RIGHT
+                    cornerRadius = dpToPx(20).toFloat()
                 }
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    dpToPx(50)
+                    dpToPx(52)
                 ).apply {
-                    setMargins(0, 0, 0, dpToPx(10))
+                    setMargins(0, 0, 0, dpToPx(12))
                 }
                 setOnClickListener {
                     logIntervention(pkg, "turn_back", usedMins, limitMins, hookType)
@@ -404,21 +405,22 @@ class UsageMonitorService : Service() {
                 }
             }
 
-            // Button 2: "Brain challenge instead" (Stage 4 hook / stub)
+            // Button 2: "Brain challenge instead"
             val btnBrainChallenge = Button(this@UsageMonitorService).apply {
-                text = "🧠 Brain challenge instead"
-                setTextColor(Color.parseColor("#EDE7F6"))
+                text = "🧠 Brain challenge instead (+40 XP)"
+                setTextColor(Color.parseColor("#00E676"))
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
                 setTypeface(typeface, Typeface.BOLD)
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#5E35B1"))
-                    cornerRadius = dpToPx(16).toFloat()
+                    setColor(Color.parseColor("#1B2E28"))
+                    cornerRadius = dpToPx(20).toFloat()
+                    setStroke(dpToPx(1), Color.parseColor("#00E676"))
                 }
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    dpToPx(48)
+                    dpToPx(50)
                 ).apply {
-                    setMargins(0, 0, 0, dpToPx(10))
+                    setMargins(0, 0, 0, dpToPx(12))
                 }
                 setOnClickListener {
                     logIntervention(pkg, "brain_challenge", usedMins, limitMins, hookType)
@@ -435,19 +437,19 @@ class UsageMonitorService : Service() {
             // Button 3: "Continue anyway" (Friction Countdown)
             var countdownSeconds = 5
             val btnContinue = Button(this@UsageMonitorService).apply {
-                text = "Wait 5s..."
+                text = "⏳ Friction Pause: 5s"
                 setTextColor(Color.parseColor("#8E8EA8"))
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
                 isEnabled = false
                 alpha = 0.5f
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#252538"))
-                    cornerRadius = dpToPx(16).toFloat()
-                    setStroke(dpToPx(1), Color.parseColor("#3B3B52"))
+                    setColor(Color.parseColor("#222234"))
+                    cornerRadius = dpToPx(20).toFloat()
+                    setStroke(dpToPx(1), Color.parseColor("#38384E"))
                 }
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    dpToPx(46)
+                    dpToPx(48)
                 )
                 setOnClickListener {
                     packageSnoozeUntil[pkg] = System.currentTimeMillis() + SNOOZE_DURATION_MS
@@ -460,7 +462,7 @@ class UsageMonitorService : Service() {
                 override fun run() {
                     countdownSeconds--
                     if (countdownSeconds > 0) {
-                        btnContinue.text = "Wait ${countdownSeconds}s..."
+                        btnContinue.text = "⏳ Friction Pause: ${countdownSeconds}s"
                         handler.postDelayed(this, 1000L)
                     } else {
                         btnContinue.text = "Continue anyway"
@@ -478,10 +480,12 @@ class UsageMonitorService : Service() {
 
             card.addView(buttonContainer)
             root.addView(card)
+            root.alpha = 0f
             overlayView = root
 
             try {
                 wm.addView(overlayView, params)
+                root.animate().alpha(1f).setDuration(250).start()
             } catch (_: Exception) {
                 overlayView = null
                 overlayTargetPackage = null
