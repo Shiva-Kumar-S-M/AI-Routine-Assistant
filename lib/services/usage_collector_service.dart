@@ -51,6 +51,26 @@ class UsageCollectorService {
     }
   }
 
+  Future<bool> checkBatteryOptimizationIgnored() async {
+    try {
+      final bool? result =
+          await _channel.invokeMethod<bool>('checkBatteryOptimizationIgnored');
+      return result ?? false;
+    } on PlatformException {
+      return false;
+    }
+  }
+
+  Future<bool> requestBatteryOptimization() async {
+    try {
+      final bool? result =
+          await _channel.invokeMethod<bool>('requestBatteryOptimization');
+      return result ?? false;
+    } on PlatformException {
+      return false;
+    }
+  }
+
   /// Triggers WindowManager overlay with a psychology-framed nudge
   Future<bool> showDistractionOverlay({
     required String appName,

@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'usage_collector_service.dart';
 import '../data/repositories/usage_repository.dart';
-import '../data/repositories/preferences_repository.dart';
-import '../domain/models/routine_alert.dart';
 import '../domain/models/usage_log.dart';
 import '../ai/decision_tree_engine.dart';
 import 'notification_service.dart';
@@ -60,7 +58,6 @@ void onStartBackgroundService(ServiceInstance service) async {
   final repository = UsageRepository();
   final engine = DecisionTreeEngine();
   final retentionPolicy = RetentionPolicy();
-  final prefsRepository = PreferencesRepository();
 
   int tickCount = 0;
 
@@ -94,79 +91,6 @@ void onStartBackgroundService(ServiceInstance service) async {
         await repository.insertNotification(alert);
         await NotificationService.instance.showAlertNotification(alert);
       }
-    }
-
-    // ── EVALUATE CONFIGURED PER-APP DAILY TIME LIMITS ───────────────────────
-    try {
-      final now = DateTime.now();
-      final startOfDay = DateTime(now.year, now.month, now.day);
-      final endOfDay = startOfDay.add(const Duration(days: 1));
-      final todayLogs = await repository.getLogsInWindow(startOfDay, endOfDay);
-
-      final Map<String, int> todaySecondsPerPkg = {};
-      final Map<String, String> pkgToAppNameMap = {};
-
-      for (final log in todayLogs) {
-        todaySecondsPerPkg[log.packageName] =
-            (todaySecondsPerPkg[log.packageName] ?? 0) + log.durationSeconds;
-        if (log.appName.isNotEmpty) {
-          pkgToAppNameMap[log.packageName] = log.appName;
-        }
-      }
-
-      final categoriesMap = await repository.getCategoriesMap();
-
-      for (final entry in todaySecondsPerPkg.entries) {
-        final pkg = entry.key;
-        final totalSecs = entry.value;
-        final appName = pkgToAppNameMap[pkg] ?? pkg;
-        final category = categoriesMap[pkg] ?? 'neutral';
-
-        int limitMins = (await prefsRepository.getAppLimitMinutes(pkg)) ?? 0;
-        if (limitMins == 0 && category == 'distracting') {
-          limitMins = await prefsRepository.getCategoryLimitMinutes('distracting');
-        }
-
-        final usedMins = totalSecs ~/ 60;
-        print('[BackgroundService] Evaluating $appName ($pkg): Used ${usedMins}m / Limit ${limitMins}m');
-
-        if (limitMins > 0 && usedMins >= limitMins) {
-          print('[BackgroundService] ⚠️ LIMIT EXCEEDED FOR $appName ($pkg)! (Used: ${usedMins}m >= Limit: ${limitMins}m)');
-
-          final alertMessage =
-              'Limit Exceeded: You spent ${usedMins}m on $appName today (Limit: ${limitMins}m).';
-
-          final alert = RoutineAlert(
-            type: AlertType.distractionAlert,
-            packageName: pkg,
-            message: alertMessage,
-            timestamp: now,
-            triggerConditions: {
-              'limitMins': limitMins,
-              'usedMinsToday': usedMins,
-              'decisionRule': 'Configured Daily App Limit Exceeded',
-            },
-          );
-
-          await repository.insertNotification(alert);
-
-          // Fire local notification
-          await NotificationService.instance.showAlertNotification(alert);
-
-          // Trigger native WindowManager overlay nudge if permission is granted
-          final hasOverlayPerm = await collector.checkOverlayPermission();
-          if (hasOverlayPerm) {
-            print('[BackgroundService] Triggering WindowManager overlay for $appName...');
-            await collector.showDistractionOverlay(
-              appName: appName,
-              packageName: pkg,
-              overrideNudgeType: 'loss',
-            );
-          }
-        }
-      }
-    } catch (e) {
-      print('[BackgroundService] Error evaluating per-app limits: $e');
     }
 
     // ── Once a day (~96 ticks at 15-min intervals): prune logs ───────────────

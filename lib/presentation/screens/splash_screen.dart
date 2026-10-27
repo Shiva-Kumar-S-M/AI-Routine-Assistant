@@ -41,12 +41,19 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 2200));
     if (!mounted) return;
 
-    final hasPermission = await _collector.checkPermission();
+    final hasUsage = await _collector.checkPermission();
+    final hasOverlay = await _collector.checkOverlayPermission();
+    final isFullyConfigured = hasUsage && hasOverlay;
+
+    if (isFullyConfigured) {
+      await _collector.startUsageMonitorService();
+    }
+
     if (!mounted) return;
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => hasPermission
+        pageBuilder: (_, __, ___) => isFullyConfigured
             ? const MainNavigationScreen()
             : const PermissionScreen(),
         transitionsBuilder: (_, animation, __, child) {

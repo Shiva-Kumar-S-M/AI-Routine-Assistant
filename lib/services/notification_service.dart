@@ -67,6 +67,12 @@ class NotificationService {
     }
   }
 
+  Future<bool?> requestNotificationsPermission() async {
+    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    return await androidPlugin?.requestNotificationsPermission();
+  }
+
   // ── Gate: enforce all notification policies ───────────────────────────────────
 
   Future<bool> _shouldShow(RoutineAlert alert) async {

@@ -64,6 +64,7 @@ class UsageRepository implements UsageRepositoryInterface {
     );
   }
 
+  @override
   Future<List<UsageLog>> getLogsInWindow(DateTime start, DateTime end, [Map<String, String>? categoriesMap]) async {
     final db = await _dbProvider.database;
     final catMap = categoriesMap ?? await getCategoriesMap();
