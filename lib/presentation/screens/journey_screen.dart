@@ -436,3 +436,4 @@ class _JourneyScreenState extends State<JourneyScreen> {
     );
   }
 }
+

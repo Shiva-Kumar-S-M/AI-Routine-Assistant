@@ -22,3 +22,4 @@ class WeeklyRecap {
     return '${timeReclaimedMinutes ~/ 60}h ${timeReclaimedMinutes % 60}m';
   }
 }
+

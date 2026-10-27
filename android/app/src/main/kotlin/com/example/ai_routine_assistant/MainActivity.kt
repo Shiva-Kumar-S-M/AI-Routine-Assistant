@@ -18,6 +18,26 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.example.ai_routine_assistant/usage"
     private var methodChannel: MethodChannel? = null
+    private var pendingRoute: String? = null
+
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        super.onCreate(savedInstanceState)
+        handleLaunchIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleLaunchIntent(intent)
+    }
+
+    private fun handleLaunchIntent(intent: Intent?) {
+        val route = intent?.getStringExtra("route")
+        if (route != null) {
+            pendingRoute = route
+            methodChannel?.invokeMethod("onDeepLinkRoute", route)
+        }
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -26,6 +46,11 @@ class MainActivity : FlutterActivity() {
         methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
         methodChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
+                "getLaunchRoute" -> {
+                    val route = pendingRoute
+                    pendingRoute = null
+                    result.success(route)
+                }
                 "checkUsagePermission" -> {
                     result.success(hasUsageStatsPermission())
                 }

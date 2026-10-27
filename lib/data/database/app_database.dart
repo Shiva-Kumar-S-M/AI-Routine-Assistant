@@ -20,7 +20,7 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -124,6 +124,9 @@ class AppDatabase {
 
     // Stage 2: Dopamine / Journey Tables
     await _createJourneyTables(db);
+
+    // Stage 3: Brain Gym Tables
+    await _createBrainGymTables(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -136,6 +139,9 @@ class AppDatabase {
       } catch (_) {
         // Column may already exist
       }
+    }
+    if (oldVersion < 3) {
+      await _createBrainGymTables(db);
     }
   }
 
@@ -207,6 +213,40 @@ class AppDatabase {
       );
     }
     await badgeBatch.commit(noResult: true);
+  }
+
+  Future<void> _createBrainGymTables(Database db) async {
+    // 12. brain_gym_scores table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS brain_gym_scores (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        game_mode TEXT NOT NULL,
+        score INTEGER NOT NULL,
+        accuracy_percent REAL NOT NULL,
+        total_questions INTEGER NOT NULL,
+        correct_answers INTEGER NOT NULL,
+        max_combo INTEGER NOT NULL,
+        timestamp INTEGER NOT NULL,
+        is_daily_challenge INTEGER DEFAULT 0
+      )
+    ''');
+
+    // 13. brain_gym_profile table (singleton row id=1)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS brain_gym_profile (
+        id INTEGER PRIMARY KEY,
+        skill_rating INTEGER DEFAULT 1000,
+        daily_challenge_completed_date TEXT,
+        sound_enabled INTEGER DEFAULT 1,
+        haptics_enabled INTEGER DEFAULT 1
+      )
+    ''');
+
+    await db.execute('''
+      INSERT OR IGNORE INTO brain_gym_profile (
+        id, skill_rating, daily_challenge_completed_date, sound_enabled, haptics_enabled
+      ) VALUES (1, 1000, NULL, 1, 1)
+    ''');
   }
 
   static const List<Map<String, dynamic>> _defaultBadges = [

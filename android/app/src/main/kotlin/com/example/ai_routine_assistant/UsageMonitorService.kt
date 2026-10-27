@@ -425,7 +425,8 @@ class UsageMonitorService : Service() {
                     hideOverlay()
                     val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
                     if (launchIntent != null) {
-                        launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        launchIntent.putExtra("route", "math_sprint")
                         startActivity(launchIntent)
                     }
                 }

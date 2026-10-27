@@ -243,3 +243,4 @@ class _Particle {
     required this.size,
   });
 }
+

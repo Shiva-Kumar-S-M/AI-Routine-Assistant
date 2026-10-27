@@ -132,3 +132,4 @@ class DailyGoalRing extends StatelessWidget {
     );
   }
 }
+

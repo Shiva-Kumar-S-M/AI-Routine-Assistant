@@ -309,3 +309,4 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
     );
   }
 }
+
