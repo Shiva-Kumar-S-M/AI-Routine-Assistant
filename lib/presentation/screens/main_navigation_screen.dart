@@ -60,25 +60,34 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     SettingsScreen(),
   ];
 
+  void _onNavSelected(int i) {
+    if (i != _selectedIndex) {
+      HapticFeedback.selectionClick();
+      setState(() => _selectedIndex = i);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF13131F),
+      backgroundColor: const Color(0xFF0E0E18),
       body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF1B1B2A),
+          color: Color(0xFF141424),
           border: Border(
-            top: BorderSide(color: Color(0xFF2E2E42), width: 0.5),
+            top: BorderSide(color: Color(0xFF26263C), width: 1.0),
           ),
         ),
         child: NavigationBar(
           selectedIndex: _selectedIndex,
-          onDestinationSelected: (i) => setState(() => _selectedIndex = i),
-          backgroundColor: const Color(0xFF1B1B2A),
-          indicatorColor: const Color(0x407C4DFF),
+          onDestinationSelected: _onNavSelected,
+          backgroundColor: const Color(0xFF141424),
+          indicatorColor: const Color(0x337C4DFF),
           surfaceTintColor: Colors.transparent,
           elevation: 0,
+          height: 68,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.home_outlined, color: Color(0xFF8E8EA2)),

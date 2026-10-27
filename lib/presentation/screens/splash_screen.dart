@@ -72,10 +72,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: const Color(0xFF0E0E18),
       body: SafeArea(
         child: Center(
           child: Column(
@@ -83,51 +81,47 @@ class _SplashScreenState extends State<SplashScreen>
             children: [
               const Spacer(),
 
-              // App Logo Card with Google Style
+              // App Logo Card with Energetic Glow
               ScaleTransition(
                 scale: _scaleAnimation,
                 child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: Container(
-                    width: 120,
-                    height: 120,
+                    width: 124,
+                    height: 124,
                     decoration: BoxDecoration(
-                      color: Colors.white,
                       shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF7C4DFF), Color(0xFF651FFF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF1A73E8).withValues(alpha: 0.15),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
+                          color: const Color(0xFF7C4DFF).withValues(alpha: 0.4),
+                          blurRadius: 36,
+                          spreadRadius: 6,
                         ),
                       ],
                       border: Border.all(
-                        color: const Color(0xFFE8EAED),
+                        color: Colors.white.withValues(alpha: 0.2),
                         width: 2,
                       ),
                     ),
-                    child: Center(
-                      child: Container(
-                        width: 84,
-                        height: 84,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF1A73E8),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.psychology_outlined,
-                          size: 48,
-                          color: Colors.white,
-                        ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.psychology_rounded,
+                        size: 64,
+                        color: Colors.white,
                       ),
                     ),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 36),
 
-              // App Name
+              // App Name & Tagline
               FadeTransition(
                 opacity: _fadeAnimation,
                 child: Column(
@@ -137,35 +131,36 @@ class _SplashScreenState extends State<SplashScreen>
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF202124),
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
                         letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 6),
+                          horizontal: 16, vertical: 6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE6F4EA),
+                        color: const Color(0xFF0F3E2B),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFCEEAD6)),
+                        border: Border.all(
+                            color: const Color(0xFF00E676).withValues(alpha: 0.4)),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.lock_outline,
+                            Icons.lock_outline_rounded,
                             size: 14,
-                            color: Color(0xFF1E8E3E),
+                            color: Color(0xFF00E676),
                           ),
                           SizedBox(width: 6),
                           Text(
-                            '100% On-Device AI • Private',
+                            '100% On-Device · Privacy First',
                             style: TextStyle(
+                              color: Color(0xFF00E676),
                               fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF1E8E3E),
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
@@ -177,28 +172,21 @@ class _SplashScreenState extends State<SplashScreen>
 
               const Spacer(),
 
-              // Loading Progress
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: 36,
-                      height: 36,
-                      child: CircularProgressIndicator(
-                        color: cs.primary,
-                        strokeWidth: 3,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Analyzing Usage Patterns…',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF5F6368),
-                      ),
-                    ),
-                  ],
+              // Loading Indicator
+              const SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C4DFF)),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Calibrating routines...',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF8E8EA2),
                 ),
               ),
 

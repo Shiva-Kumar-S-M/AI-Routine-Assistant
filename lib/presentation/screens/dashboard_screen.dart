@@ -161,8 +161,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   contentPadding: EdgeInsets.zero,
                   leading: Radio<String>(
                     value: 'turn_backs',
+                    // ignore: deprecated_member_use
                     groupValue: selectedType,
                     activeColor: const Color(0xFF7C4DFF),
+                    // ignore: deprecated_member_use
                     onChanged: (val) => setDialogState(() {
                       selectedType = val!;
                       target = 3;
@@ -181,8 +183,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   contentPadding: EdgeInsets.zero,
                   leading: Radio<String>(
                     value: 'distracting_minutes',
+                    // ignore: deprecated_member_use
                     groupValue: selectedType,
                     activeColor: const Color(0xFF7C4DFF),
+                    // ignore: deprecated_member_use
                     onChanged: (val) => setDialogState(() {
                       selectedType = val!;
                       target = 60;

@@ -5,6 +5,7 @@ class AppColors {
 
   // ── Dark-First Primary Palette ─────────────────────────────────────────────
   static const Color primary = Color(0xFF7C4DFF);          // Deep Purple / Violet Accent
+  static const Color primaryLight = Color(0xFFB388FF);     // Light Violet Accent
   static const Color primaryContainer = Color(0xFF261D4E);
   static const Color primaryGlow = Color(0xFFB388FF);
   static const Color onPrimary = Color(0xFFFFFFFF);

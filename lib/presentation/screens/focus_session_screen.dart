@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../data/repositories/focus_repository.dart';
 import '../../data/repositories/preferences_repository.dart';
 import '../../domain/models/focus_session.dart';
-import '../../core/constants/app_colors.dart';
 import '../../data/repositories/progress_repository.dart';
 import '../widgets/level_up_dialog.dart';
+import '../widgets/chunky_button.dart';
 
 class FocusSessionScreen extends StatefulWidget {
   const FocusSessionScreen({super.key});
@@ -62,58 +62,82 @@ class _FocusSessionScreenState extends State<FocusSessionScreen> {
     setState(() {
       _selectedMinutes = minutes;
       _remainingSeconds = minutes * 60;
-      _sessionStartTime = null;
     });
   }
 
-  Future<void> _completeSession() async {
+  void _completeSession() async {
     _timer?.cancel();
     await _prefs.setFocusActive(false);
-
-    final endTime = DateTime.now();
-    final startTime = _sessionStartTime ??
-        endTime.subtract(Duration(minutes: _selectedMinutes));
+    setState(() => _isRunning = false);
 
     final session = FocusSession(
-      startTime: startTime,
-      endTime: endTime,
+      startTime: _sessionStartTime ??
+          DateTime.now().subtract(Duration(minutes: _selectedMinutes)),
+      endTime: DateTime.now(),
       durationMinutes: _selectedMinutes,
       isCompleted: true,
     );
 
     await _repository.insertFocusSession(session);
 
-    // Stage 2: Award +30 XP and check level-up
-    final levelUp = await ProgressRepository().recordFocusCompletion(_selectedMinutes);
-    if (levelUp != null && mounted) {
-      LevelUpDialog.show(context, newLevel: levelUp.newLevel, title: levelUp.title);
-    }
+    // Award +30 XP for Stage 2 Journey System
+    final progressRepo = ProgressRepository();
+    final levelUp = await progressRepo.recordFocusCompletion(_selectedMinutes);
 
     if (mounted) {
-      setState(() {
-        _isRunning = false;
-        _remainingSeconds = _selectedMinutes * 60;
-        _sessionStartTime = null;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'Focus Session ($_selectedMinutes min) Completed. Logged.'),
-          backgroundColor: AppColors.productive,
-        ),
-      );
+      if (levelUp != null) {
+        await LevelUpDialog.show(context, newLevel: levelUp.newLevel, title: levelUp.title);
+      }
+      if (!mounted) return;
+      _showCompletionDialog();
     }
+  }
+
+  void _showCompletionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF181827),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: const BorderSide(color: Color(0xFF2B2B44)),
+        ),
+        title: const Text('🎉 Focus Completed!',
+            style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
+        content: Text(
+          'Great job! You maintained focus for $_selectedMinutes minutes and earned +30 XP.',
+          style: const TextStyle(color: Color(0xFF8E8EA2), fontSize: 14),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _resetTimer();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF00E676),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            child: const Text('Awesome', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  double get _progress {
+    final total = _selectedMinutes * 60;
+    if (total == 0) return 0.0;
+    return (total - _remainingSeconds) / total;
   }
 
   String _formatTime(int totalSeconds) {
-    final mins = (totalSeconds ~/ 60).toString().padLeft(2, '0');
-    final secs = (totalSeconds % 60).toString().padLeft(2, '0');
-    return '$mins:$secs';
+    final m = totalSeconds ~/ 60;
+    final s = totalSeconds % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
-
-  double get _progress =>
-      1.0 - (_remainingSeconds / (_selectedMinutes * 60));
 
   @override
   void dispose() {
@@ -125,17 +149,18 @@ class _FocusSessionScreenState extends State<FocusSessionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: const Color(0xFF0E0E18),
       appBar: AppBar(
         title: const Text(
           'Focus Mode',
           style: TextStyle(
-            color: Color(0xFF202124),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.3,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF0E0E18),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -156,27 +181,28 @@ class _FocusSessionScreenState extends State<FocusSessionScreen> {
                       duration: const Duration(milliseconds: 200),
                       margin: const EdgeInsets.symmetric(horizontal: 6),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
+                          horizontal: 18, vertical: 10),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.primaryContainer
-                            : Colors.white,
+                            ? const Color(0xFF261D4E)
+                            : const Color(0xFF181827),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isSelected
-                              ? AppColors.primary
-                              : AppColors.border,
+                              ? const Color(0xFF7C4DFF)
+                              : const Color(0xFF2B2B44),
+                          width: isSelected ? 1.5 : 1,
                         ),
                       ),
                       child: Text(
                         '${min}m',
                         style: TextStyle(
                           color: isSelected
-                              ? AppColors.primary
-                              : const Color(0xFF5F6368),
+                              ? const Color(0xFFB388FF)
+                              : const Color(0xFF8E8EA2),
                           fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
+                              ? FontWeight.w900
+                              : FontWeight.bold,
                           fontSize: 14,
                         ),
                       ),
@@ -185,35 +211,38 @@ class _FocusSessionScreenState extends State<FocusSessionScreen> {
                 }).toList(),
               ),
 
-              const SizedBox(height: 36),
+              const SizedBox(height: 48),
 
-              // Circular Progress Ring (Google Style)
+              // Glowing Circular Timer Ring
               Stack(
                 alignment: Alignment.center,
                 children: [
                   SizedBox(
-                    width: 250,
-                    height: 250,
+                    width: 260,
+                    height: 260,
                     child: CircularProgressIndicator(
                       value: _progress,
                       strokeWidth: 10,
-                      backgroundColor: const Color(0xFFE8EAED),
-                      color: _isRunning
-                          ? AppColors.productive
-                          : AppColors.primary,
+                      backgroundColor: const Color(0xFF1F1F35),
+                      valueColor: AlwaysStoppedAnimation(
+                        _isRunning ? const Color(0xFF00E676) : const Color(0xFF7C4DFF),
+                      ),
+                      strokeCap: StrokeCap.round,
                     ),
                   ),
                   Container(
-                    width: 220,
-                    height: 220,
+                    width: 230,
+                    height: 230,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white,
+                      color: const Color(0xFF181827),
+                      border: Border.all(color: const Color(0xFF2B2B44)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
+                          color: (_isRunning ? const Color(0xFF00E676) : const Color(0xFF7C4DFF))
+                              .withValues(alpha: 0.15),
+                          blurRadius: 28,
+                          spreadRadius: 4,
                         ),
                       ],
                     ),
@@ -223,19 +252,19 @@ class _FocusSessionScreenState extends State<FocusSessionScreen> {
                         Text(
                           _formatTime(_remainingSeconds),
                           style: const TextStyle(
-                            color: Color(0xFF202124),
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'monospace',
+                            color: Colors.white,
+                            fontSize: 52,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -1,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _isRunning ? 'Focusing…' : 'Ready to Focus',
-                          style: const TextStyle(
-                            color: Color(0xFF5F6368),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                          _isRunning ? 'Deep Work in Progress' : 'Ready to Focus',
+                          style: TextStyle(
+                            color: _isRunning ? const Color(0xFF00E676) : const Color(0xFF8E8EA2),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -244,30 +273,29 @@ class _FocusSessionScreenState extends State<FocusSessionScreen> {
                 ],
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 36),
 
               // Active Badge
               if (_isRunning)
                 Container(
-                  margin: const EdgeInsets.only(bottom: 20),
+                  margin: const EdgeInsets.only(bottom: 24),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 8),
+                      horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.productiveContainer,
+                    color: const Color(0xFF0F3E2B),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color: AppColors.productive.withValues(alpha: 0.3)),
+                    border: Border.all(color: const Color(0xFF00E676).withValues(alpha: 0.5)),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.notifications_off_outlined,
-                          color: AppColors.productive, size: 16),
+                          color: Color(0xFF00E676), size: 16),
                       SizedBox(width: 8),
                       Text(
-                        'Distraction alerts suppressed',
+                        'Distraction alerts & triggers suppressed',
                         style: TextStyle(
-                          color: AppColors.productive,
+                          color: Color(0xFF00E676),
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -276,41 +304,41 @@ class _FocusSessionScreenState extends State<FocusSessionScreen> {
                   ),
                 ),
 
-              // Controls
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: _isRunning ? _pauseTimer : _startTimer,
-                    icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow),
-                    label: Text(_isRunning ? 'Pause' : 'Start Focus'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _isRunning
-                          ? AppColors.distracting
-                          : AppColors.productive,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 28, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28)),
+              // Action Controls
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: ChunkyButton(
+                        text: _isRunning ? 'Pause' : 'Start Focus',
+                        icon: _isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                        height: 54,
+                        borderRadius: 18,
+                        color: _isRunning
+                            ? const Color(0xFFFF2A55)
+                            : const Color(0xFF00E676),
+                        textColor: _isRunning ? Colors.white : Colors.black,
+                        onPressed: _isRunning ? _pauseTimer : _startTimer,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  OutlinedButton.icon(
-                    onPressed: _resetTimer,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Reset'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF5F6368),
-                      side: const BorderSide(color: AppColors.border),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28)),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      flex: 1,
+                      child: ChunkyButton(
+                        text: 'Reset',
+                        icon: Icons.refresh_rounded,
+                        height: 54,
+                        borderRadius: 18,
+                        isSecondary: true,
+                        onPressed: _resetTimer,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+
               const SizedBox(height: 32),
             ],
           ),

@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../domain/models/routine_alert.dart';
 import '../data/repositories/preferences_repository.dart';

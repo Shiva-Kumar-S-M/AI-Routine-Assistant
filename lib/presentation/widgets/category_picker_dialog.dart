@@ -17,14 +17,20 @@ class CategoryPickerDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF181827) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF202124);
+    final subtextColor = isDark ? Colors.white60 : const Color(0xFF5F6368);
+    final borderColor = isDark ? const Color(0xFF2E2E48) : AppColors.border;
+
     return AlertDialog(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      title: const Text(
+      title: Text(
         'Select App Category',
         style: TextStyle(
-          color: Color(0xFF202124),
+          color: textColor,
           fontWeight: FontWeight.bold,
           fontSize: 18,
         ),
@@ -33,15 +39,15 @@ class CategoryPickerDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildOption(context, 'productive', 'Productive',
-              Icons.check_circle_outline, AppColors.productive),
+              Icons.check_circle_outline, AppColors.productive, isDark),
           const SizedBox(height: 8),
           _buildOption(context, 'distracting', 'Distracting',
-              Icons.warning_amber_rounded, AppColors.distracting),
+              Icons.warning_amber_rounded, AppColors.distracting, isDark),
           const SizedBox(height: 8),
           _buildOption(context, 'neutral', 'Neutral / System',
-              Icons.remove_circle_outline, AppColors.neutral),
+              Icons.remove_circle_outline, AppColors.neutral, isDark),
           if (isCustom && onReset != null) ...[
-            const Divider(color: AppColors.border, height: 24),
+            Divider(color: borderColor, height: 24),
             InkWell(
               onTap: () {
                 onReset!();
@@ -53,16 +59,16 @@ class CategoryPickerDialog extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: borderColor),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.restore, color: Color(0xFF5F6368)),
-                    SizedBox(width: 12),
+                    Icon(Icons.restore, color: subtextColor),
+                    const SizedBox(width: 12),
                     Text(
                       'Reset to Default',
                       style: TextStyle(
-                        color: Color(0xFF5F6368),
+                        color: subtextColor,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -82,8 +88,10 @@ class CategoryPickerDialog extends StatelessWidget {
     String label,
     IconData icon,
     Color color,
+    bool isDark,
   ) {
     final isSelected = currentCategory == value;
+    final textColor = isDark ? Colors.white : const Color(0xFF202124);
     return InkWell(
       onTap: () {
         onSelected(value);
@@ -93,7 +101,7 @@ class CategoryPickerDialog extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.12) : Colors.transparent,
+          color: isSelected ? color.withValues(alpha: isDark ? 0.22 : 0.12) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? color : Colors.transparent,
@@ -106,7 +114,7 @@ class CategoryPickerDialog extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? color : const Color(0xFF202124),
+                color: isSelected ? color : textColor,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
