@@ -8,9 +8,8 @@ void main() {
       home: BrainGymHubScreen(),
     ));
 
-    // The screen must NOT be blank on frame 1
-    expect(find.text('Brain Gym'), findsOneWidget);
-    expect(find.text('Cognitive training & impulse deflection'), findsOneWidget);
+    // The screen must NOT be blank on frame 1 - AppBar is visible
+    expect(find.text('BRAIN GYM'), findsOneWidget);
 
     // Rating card
     expect(find.text('1000 ELO'), findsOneWidget);
@@ -18,7 +17,7 @@ void main() {
 
     // Daily Challenge card
     expect(find.text('DAILY CHALLENGE'), findsOneWidget);
-    expect(find.text('Today\'s Mixed Workout'), findsOneWidget);
+    expect(find.text('Mixed Workout Blitz'), findsOneWidget);
     expect(find.text('Play'), findsOneWidget);
 
     // All 4 Training modes
@@ -27,8 +26,10 @@ void main() {
     expect(find.text('Memory Flash'), findsOneWidget);
     expect(find.text('Odd One Out'), findsOneWidget);
 
-    // Leaderboard section
-    expect(find.text('LOCAL LEADERBOARD & RECENT SESSIONS'), findsOneWidget);
+    // Scroll down to verify the leaderboard section
+    final leaderboardFinder = find.text('LOCAL LEADERBOARD & RECENT SESSIONS');
+    await tester.scrollUntilVisible(leaderboardFinder, 200.0);
+    expect(leaderboardFinder, findsOneWidget);
 
     // No CircularProgressIndicator blocking the screen
     expect(find.byType(CircularProgressIndicator), findsNothing);

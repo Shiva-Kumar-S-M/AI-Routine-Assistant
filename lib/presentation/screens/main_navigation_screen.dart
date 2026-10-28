@@ -21,11 +21,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       MethodChannel('com.example.ai_routine_assistant/usage');
 
   late int _selectedIndex;
+  late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
+    _pages = [
+      const DashboardScreen(),
+      const BrainGymHubScreen(),
+      const JourneyScreen(),
+      const InsightsScreen(),
+      const SettingsScreen(),
+    ];
     _setupDeepLinkHandling();
   }
 
@@ -76,14 +84,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       );
     }
   }
-
-  static const _pages = <Widget>[
-    DashboardScreen(),
-    BrainGymHubScreen(),
-    JourneyScreen(),
-    InsightsScreen(),
-    SettingsScreen(),
-  ];
 
   void _onNavSelected(int i) {
     if (i != _selectedIndex) {

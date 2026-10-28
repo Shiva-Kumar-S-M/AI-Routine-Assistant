@@ -56,128 +56,109 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _loadData,
-          color: AppColors.primary,
-          backgroundColor: AppColors.surface,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: AppColors.background,
+        title: const Text(
+          'BRAIN GYM',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.2,
+          ),
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceRaised,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _buildHeader(),
-                const SizedBox(height: 20),
-                _buildRatingCard(),
-                const SizedBox(height: 16),
-                _buildDailyChallengeCard(),
-                const SizedBox(height: 24),
-                const Text(
-                  'TRAINING MODES',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 11,
+                const Icon(Icons.bolt_rounded, color: AppColors.textPrimary, size: 14),
+                const SizedBox(width: 4),
+                Text(
+                  '${_profile.streakDays}d Streak',
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.w600,
-                    letterSpacing: 1.1,
+                    fontSize: 11,
                   ),
                 ),
-                const SizedBox(height: 12),
-                _buildGameCard(
-                  title: 'Math Sprint',
-                  subtitle: '60s mental arithmetic blitz. Adaptive difficulty.',
-                  icon: Icons.calculate_outlined,
-                  mode: BrainGymGameMode.mathSprint,
-                  onTap: () => _launchGame(const MathSprintScreen()),
-                ),
-                const SizedBox(height: 10),
-                _buildGameCard(
-                  title: 'Number Sequence',
-                  subtitle: 'Spot the pattern and predict what follows.',
-                  icon: Icons.tag_rounded,
-                  mode: BrainGymGameMode.numberSequence,
-                  onTap: () => _launchGame(const SequenceGameScreen()),
-                ),
-                const SizedBox(height: 10),
-                _buildGameCard(
-                  title: 'Memory Flash',
-                  subtitle: 'Remember and reproduce spatial light patterns.',
-                  icon: Icons.grid_view_rounded,
-                  mode: BrainGymGameMode.memoryFlash,
-                  onTap: () => _launchGame(const MemoryFlashScreen()),
-                ),
-                const SizedBox(height: 10),
-                _buildGameCard(
-                  title: 'Odd One Out',
-                  subtitle: 'Analogies, classifications & odd-one-out reasoning.',
-                  icon: Icons.extension_outlined,
-                  mode: BrainGymGameMode.logicGrid,
-                  onTap: () => _launchGame(const LogicGameScreen()),
-                ),
-                const SizedBox(height: 24),
-                _buildLeaderboardSection(),
-                const SizedBox(height: 32),
               ],
             ),
           ),
+          IconButton(
+            icon: const Icon(Icons.refresh_outlined, color: AppColors.textSecondary, size: 20),
+            onPressed: _loadData,
+            tooltip: 'Refresh',
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        color: AppColors.primary,
+        backgroundColor: AppColors.surface,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          children: [
+            _buildRatingCard(),
+            const SizedBox(height: 16),
+            _buildDailyChallengeCard(),
+            const SizedBox(height: 24),
+            const Text(
+              'TRAINING MODES',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.1,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildGameCard(
+              title: 'Math Sprint',
+              subtitle: '60s mental arithmetic blitz. Adaptive difficulty.',
+              icon: Icons.calculate_outlined,
+              mode: BrainGymGameMode.mathSprint,
+              onTap: () => _launchGame(const MathSprintScreen()),
+            ),
+            const SizedBox(height: 10),
+            _buildGameCard(
+              title: 'Number Sequence',
+              subtitle: 'Spot the pattern and predict what follows.',
+              icon: Icons.tag_rounded,
+              mode: BrainGymGameMode.numberSequence,
+              onTap: () => _launchGame(const SequenceGameScreen()),
+            ),
+            const SizedBox(height: 10),
+            _buildGameCard(
+              title: 'Memory Flash',
+              subtitle: 'Remember and reproduce spatial light patterns.',
+              icon: Icons.grid_view_rounded,
+              mode: BrainGymGameMode.memoryFlash,
+              onTap: () => _launchGame(const MemoryFlashScreen()),
+            ),
+            const SizedBox(height: 10),
+            _buildGameCard(
+              title: 'Odd One Out',
+              subtitle: 'Analogies, classifications & odd-one-out reasoning.',
+              icon: Icons.extension_outlined,
+              mode: BrainGymGameMode.logicGrid,
+              onTap: () => _launchGame(const LogicGameScreen()),
+            ),
+            const SizedBox(height: 24),
+            _buildLeaderboardSection(),
+            const SizedBox(height: 32),
+          ],
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Brain Gym',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              SizedBox(height: 2),
-              Text(
-                'Cognitive training & impulse deflection',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceRaised,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.bolt_rounded, color: AppColors.textPrimary, size: 16),
-              const SizedBox(width: 4),
-              Text(
-                '${_profile.streakDays}d Streak',
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -204,6 +185,7 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   children: [
@@ -217,13 +199,9 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        '• ${_profile.gamesPlayed} games played',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: AppColors.disabled, fontSize: 11),
-                      ),
+                    Text(
+                      '• ${_profile.gamesPlayed} played',
+                      style: const TextStyle(color: AppColors.disabled, fontSize: 11),
                     ),
                   ],
                 ),
@@ -232,14 +210,14 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
                   '${_profile.skillRating} ELO',
                   style: const TextStyle(
                     color: AppColors.textPrimary,
-                    fontSize: 28,
+                    fontSize: 26,
                     fontWeight: FontWeight.w300,
                     letterSpacing: -0.5,
                   ),
                 ),
                 const SizedBox(height: 2),
                 const Text(
-                  'Skill rating dynamically shifts based on speed & accuracy',
+                  'Speed & accuracy dynamic calibration',
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
                 ),
               ],
@@ -273,6 +251,7 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   'DAILY CHALLENGE',
@@ -285,7 +264,7 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Today\'s Mixed Workout',
+                  'Mixed Workout Blitz',
                   style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 14,
@@ -294,7 +273,7 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  '10 questions seeded for today • +40 XP',
+                  '10 questions • +40 XP reward',
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
                 ),
               ],
@@ -351,6 +330,7 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
