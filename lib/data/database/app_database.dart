@@ -20,34 +20,35 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
       onOpen: (db) async {
-        // Ensure all tables and default rows exist across schema updates
-        await _createBrainGymTables(db);
-        await _createEarlyWarningTables(db);
+        try {
+          await _createBrainGymTables(db);
+        } catch (_) {}
+        try {
+          await _createEarlyWarningTables(db);
+        } catch (_) {}
 
         // Ensure app_name column exists in app_categories
         try {
           await db.execute('ALTER TABLE app_categories ADD COLUMN app_name TEXT');
         } catch (_) {}
 
-        // Backfill default human names for seeded apps
-        for (final entry in defaultAppNames.entries) {
-          await db.update(
-            'app_categories',
-            {'app_name': entry.value},
-            where: "package_name = ? AND (app_name IS NULL OR app_name = '' OR app_name = package_name)",
-            whereArgs: [entry.key],
-          );
-          await db.update(
-            'usage_logs',
-            {'app_name': entry.value},
-            where: "package_name = ? AND (app_name IS NULL OR app_name = '' OR app_name = package_name)",
-            whereArgs: [entry.key],
-          );
-        }
+        // Backfill default human names for seeded apps using batch
+        try {
+          final batch = db.batch();
+          for (final entry in defaultAppNames.entries) {
+            batch.update(
+              'app_categories',
+              {'app_name': entry.value},
+              where: "package_name = ? AND (app_name IS NULL OR app_name = '' OR app_name = package_name)",
+              whereArgs: [entry.key],
+            );
+          }
+          await batch.commit(noResult: true);
+        } catch (_) {}
       },
     );
   }
@@ -175,6 +176,10 @@ class AppDatabase {
       await _createBrainGymTables(db);
     }
     if (oldVersion < 4) {
+      await _createEarlyWarningTables(db);
+    }
+    if (oldVersion < 5) {
+      await _createBrainGymTables(db);
       await _createEarlyWarningTables(db);
     }
   }

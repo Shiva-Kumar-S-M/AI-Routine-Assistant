@@ -16,8 +16,6 @@ class BrainGymHubScreen extends StatefulWidget {
 
 class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
   final BrainGymRepository _repository = BrainGymRepository();
-  bool _loading = true;
-  String? _loadError;
   BrainGymProfile _profile = BrainGymProfile.initial();
   Map<String, int> _personalBests = {};
   List<BrainGymScore> _recentScores = [];
@@ -29,10 +27,7 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
   }
 
   Future<void> _loadData() async {
-    setState(() {
-      _loading = true;
-      _loadError = null;
-    });
+    if (!mounted) return;
 
     try {
       final profile = await _repository.getProfile();
@@ -44,18 +39,9 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
           _profile = profile;
           _personalBests = personalBests;
           _recentScores = recents;
-          _loading = false;
         });
       }
-    } catch (e, st) {
-      debugPrint('Error loading Brain Gym data: $e\n$st');
-      if (mounted) {
-        setState(() {
-          _loading = false;
-          _loadError = 'Could not load Brain Gym: $e';
-        });
-      }
-    }
+    } catch (_) {}
   }
 
   void _launchGame(Widget screen) async {
@@ -68,56 +54,13 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        backgroundColor: AppColors.background,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-      );
-    }
-
-    if (_loadError != null) {
-      return Scaffold(
-        backgroundColor: AppColors.background,
-        body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline_rounded, color: AppColors.textSecondary, size: 48),
-                  const SizedBox(height: 16),
-                  Text(
-                    _loadError!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _loadData,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.onPrimary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadData,
           color: AppColors.primary,
+          backgroundColor: AppColors.surface,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -186,28 +129,31 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Brain Gym',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.3,
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Brain Gym',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.3,
+                ),
               ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              'Cognitive training & impulse deflection',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12,
+              SizedBox(height: 2),
+              Text(
+                'Cognitive training & impulse deflection',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+        const SizedBox(width: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
@@ -216,6 +162,7 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
             border: Border.all(color: AppColors.border),
           ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(Icons.bolt_rounded, color: AppColors.textPrimary, size: 16),
               const SizedBox(width: 4),
@@ -353,6 +300,7 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
               ],
             ),
           ),
+          const SizedBox(width: 8),
           ElevatedButton(
             onPressed: () => _launchGame(const MathSprintScreen(isDailyChallenge: true)),
             style: ElevatedButton.styleFrom(
@@ -483,50 +431,52 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.border),
             ),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _recentScores.take(5).length,
-              separatorBuilder: (_, __) => const Divider(color: AppColors.border, height: 1),
-              itemBuilder: (context, index) {
-                final item = _recentScores[index];
-                return ListTile(
-                  dense: true,
-                  leading: Container(
-                    width: 26,
-                    height: 26,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceRaised,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Text(
-                      '${index + 1}',
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  title: Text(
-                    item.modeDisplayName,
-                    style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 13),
-                  ),
-                  subtitle: Text(
-                    '${item.accuracy.toInt()}% accuracy • ${item.correctAnswers}/${item.totalQuestions}',
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                  ),
-                  trailing: Text(
-                    '${item.score} pts',
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                );
-              },
+            child: Column(
+              children: [
+                for (int i = 0; i < _recentScores.take(5).length; i++) ...[
+                  if (i > 0) const Divider(color: AppColors.border, height: 1),
+                  _buildLeaderboardTile(_recentScores[i], i + 1),
+                ],
+              ],
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildLeaderboardTile(BrainGymScore item, int rank) {
+    return ListTile(
+      dense: true,
+      leading: Container(
+        width: 26,
+        height: 26,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceRaised,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Text(
+          '$rank',
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+        ),
+      ),
+      title: Text(
+        item.modeDisplayName,
+        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 13),
+      ),
+      subtitle: Text(
+        '${item.accuracy.toInt()}% accuracy • ${item.correctAnswers}/${item.totalQuestions}',
+        style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+      ),
+      trailing: Text(
+        '${item.score} pts',
+        style: const TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w600,
+          fontSize: 13,
+        ),
+      ),
     );
   }
 }
