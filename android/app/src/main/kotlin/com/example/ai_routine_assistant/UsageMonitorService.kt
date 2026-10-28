@@ -45,16 +45,20 @@ class UsageMonitorService : Service() {
     private var overlayView: View? = null
     private var overlayTargetPackage: String? = null
     private var countdownRunnable: Runnable? = null
-    private var isRunning = false
+    private var isForegroundStarted = false
 
     // Guards and state tracking
     private val shownForSession = mutableSetOf<String>()
     private val packageSnoozeUntil = mutableMapOf<String, Long>()
 
     companion object {
+        @Volatile
+        var isServiceRunning = false
+            private set
+
         private const val POLL_INTERVAL_MS = 2000L
         private const val SERVICE_NOTIFICATION_ID = 991
-        private const val NOTIFICATION_CHANNEL_ID = "usage_monitor_service_channel"
+        private const val NOTIFICATION_CHANNEL_ID = "monitoring_channel"
         private const val SNOOZE_DURATION_MS = 15 * 60 * 1000L // 15 minutes
 
         private val HOOK_TEMPLATES = listOf(
@@ -68,7 +72,7 @@ class UsageMonitorService : Service() {
 
     private val pollRunnable = object : Runnable {
         override fun run() {
-            if (!isRunning) return
+            if (!isServiceRunning) return
             checkForegroundApp()
             handler.postDelayed(this, POLL_INTERVAL_MS)
         }
@@ -78,20 +82,23 @@ class UsageMonitorService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        isRunning = true
+        isServiceRunning = true
         startServiceInForeground()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        isRunning = true
-        startServiceInForeground()
+        isServiceRunning = true
+        if (!isForegroundStarted) {
+            startServiceInForeground()
+        }
         handler.removeCallbacks(pollRunnable)
         handler.post(pollRunnable)
         return START_STICKY
     }
 
     override fun onDestroy() {
-        isRunning = false
+        isServiceRunning = false
+        isForegroundStarted = false
         handler.removeCallbacks(pollRunnable)
         hideOverlay()
         super.onDestroy()
@@ -102,23 +109,30 @@ class UsageMonitorService : Service() {
     // ── Foreground Service Setup ────────────────────────────────────────────────
 
     private fun startServiceInForeground() {
+        if (isForegroundStarted) return
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channel = NotificationChannel(
                 NOTIFICATION_CHANNEL_ID,
-                "Routine Focus Monitor",
-                NotificationManager.IMPORTANCE_LOW
+                "Monitoring",
+                NotificationManager.IMPORTANCE_MIN
             ).apply {
-                description = "Monitors screen-time limits in real-time"
+                description = "Monitors focus and routine limits in the background"
                 setShowBadge(false)
+                enableVibration(false)
+                setSound(null, null)
+                lockscreenVisibility = Notification.VISIBILITY_SECRET
             }
             nm.createNotificationChannel(channel)
 
             val notification = Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
-                .setContentTitle("Routine Focus Active")
-                .setContentText("Monitoring screen-time limits and habits on-device")
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle("Focus Assistant")
+                .setContentText("Focus Assistant is active")
+                .setSmallIcon(android.R.drawable.stat_notify_sync)
                 .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setVisibility(Notification.VISIBILITY_SECRET)
                 .build()
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android 14+ (API 34)
@@ -130,6 +144,7 @@ class UsageMonitorService : Service() {
             } else {
                 startForeground(SERVICE_NOTIFICATION_ID, notification)
             }
+            isForegroundStarted = true
         }
     }
 

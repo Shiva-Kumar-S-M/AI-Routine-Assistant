@@ -123,6 +123,15 @@ class UsageCollectorService {
     }
   }
 
+  Future<bool> openNotificationChannelSettings() async {
+    try {
+      final bool result = await _channel.invokeMethod('openNotificationChannelSettings');
+      return result;
+    } on PlatformException {
+      return false;
+    }
+  }
+
   /// Generates rotating psychology-based nudge message
   Map<String, String> getRandomPsychologyNudge(String appName, {String? overrideType}) {
     final nudges = [

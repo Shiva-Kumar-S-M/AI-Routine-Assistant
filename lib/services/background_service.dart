@@ -17,11 +17,7 @@ Future<void> initializeBackgroundService() async {
     androidConfiguration: AndroidConfiguration(
       onStart: onStartBackgroundService,
       autoStart: true,
-      isForegroundMode: true,              // ← FIXED: keeps service alive on Android 8+
-      notificationChannelId: 'bg_routine_channel',
-      initialNotificationTitle: 'AI Routine Assistant',
-      initialNotificationContent: 'Monitoring screen time habits on-device',
-      foregroundServiceNotificationId: 888,
+      isForegroundMode: false,
     ),
     iosConfiguration: IosConfiguration(
       autoStart: false,

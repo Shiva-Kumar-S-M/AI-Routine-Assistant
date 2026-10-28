@@ -121,25 +121,43 @@ class MainActivity : FlutterActivity() {
                     stopUsageMonitorService()
                     result.success(true)
                 }
+                "openNotificationChannelSettings" -> {
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS).apply {
+                                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                                putExtra(Settings.EXTRA_CHANNEL_ID, "monitoring_channel")
+                            }
+                            startActivity(intent)
+                        } else {
+                            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                            }
+                            startActivity(intent)
+                        }
+                    } catch (_: Exception) {
+                        try {
+                            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                            }
+                            startActivity(intent)
+                        } catch (_: Exception) {}
+                    }
+                    result.success(true)
+                }
                 else -> {
                     result.notImplemented()
                 }
             }
         }
 
-        if (hasUsageStatsPermission()) {
-            startUsageMonitorService()
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (hasUsageStatsPermission()) {
+        if (!UsageMonitorService.isServiceRunning && hasUsageStatsPermission() && hasOverlayPermission()) {
             startUsageMonitorService()
         }
     }
 
     private fun startUsageMonitorService() {
+        if (UsageMonitorService.isServiceRunning) return
         try {
             val intent = Intent(this, UsageMonitorService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

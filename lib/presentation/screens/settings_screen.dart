@@ -7,6 +7,7 @@ import '../../domain/services/retention_policy.dart';
 import '../widgets/category_picker_dialog.dart';
 import '../widgets/app_limit_dialog.dart';
 import '../../services/security_service.dart';
+import '../../services/usage_collector_service.dart';
 import 'network_proof_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -22,6 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   final SecurityService _securityService = SecurityService();
   final PreferencesRepository _prefs = PreferencesRepository();
   final RetentionPolicy _retentionPolicy = RetentionPolicy();
+  final UsageCollectorService _collector = UsageCollectorService();
 
   late TabController _tabController;
 
@@ -396,6 +398,49 @@ class _SettingsScreenState extends State<SettingsScreen>
       children: [
         _sectionHeader('Notification Behavior', Icons.notifications_outlined),
         const SizedBox(height: 8),
+        _prefCard(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.info_outline_rounded, color: Color(0xFF00E5FF), size: 20),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Background Monitoring Indicator',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Android requires a continuous low-priority foreground notification for real-time screen-time tracking and overlay protection. It is silent and has no sound or vibration.',
+                  style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 12, height: 1.4),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => _collector.openNotificationChannelSettings(),
+                  icon: const Icon(Icons.tune_rounded, size: 16),
+                  label: const Text('Configure or Hide from Status Bar'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF7C4DFF),
+                    side: const BorderSide(color: Color(0xFF4C3672)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
         _prefCard(
           child: Column(
             children: [
