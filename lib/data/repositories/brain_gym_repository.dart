@@ -63,6 +63,11 @@ class BrainGymRepository {
     }
 
     if (rows.isEmpty) {
+      await db.rawInsert('''
+        INSERT OR IGNORE INTO brain_gym_profile (
+          id, skill_rating, daily_challenge_completed_date, sound_enabled, haptics_enabled
+        ) VALUES (1, 1000, NULL, 1, 1)
+      ''');
       return BrainGymProfile(gamesPlayed: gamesPlayed, streakDays: streak);
     }
     return BrainGymProfile.fromMap(rows.first, gamesPlayed: gamesPlayed, streakDays: streak);

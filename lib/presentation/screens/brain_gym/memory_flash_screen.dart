@@ -103,13 +103,19 @@ class _MemoryFlashScreenState extends State<MemoryFlashScreen> {
 
   Future<void> _finishGame() async {
     setState(() => _isGameOver = true);
-    final summary = await _repository.recordGameResult(
-      mode: BrainGymGameMode.memoryFlash,
-      score: _score,
-      correctAnswers: _totalCorrectTiles,
-      totalQuestions: _totalAttemptedTiles > 0 ? _totalAttemptedTiles : 1,
-      maxCombo: _maxCombo,
-    );
+    BrainGymResultSummary summary;
+    try {
+      summary = await _repository.recordGameResult(
+        mode: BrainGymGameMode.memoryFlash,
+        score: _score,
+        correctAnswers: _totalCorrectTiles,
+        totalQuestions: _totalAttemptedTiles > 0 ? _totalAttemptedTiles : 1,
+        maxCombo: _maxCombo,
+      );
+    } catch (e, st) {
+      debugPrint('Error recording memory flash score: $e\n$st');
+      return;
+    }
 
     if (!mounted) return;
 

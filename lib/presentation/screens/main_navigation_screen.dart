@@ -32,22 +32,47 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void _setupDeepLinkHandling() {
     _platformChannel.setMethodCallHandler((call) async {
       if (call.method == 'onDeepLinkRoute') {
-        final route = call.arguments as String?;
-        _navigateRoute(route);
+        _handleDeepLink(call.arguments);
       }
     });
 
-    _platformChannel.invokeMethod<String>('getLaunchRoute').then((route) {
-      if (route != null && mounted) {
-        _navigateRoute(route);
-      }
-    }).catchError((_) {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _platformChannel.invokeMethod('getLaunchRoute').then((data) {
+        if (data != null && mounted) {
+          _handleDeepLink(data);
+        }
+      }).catchError((_) {});
+    });
   }
 
-  void _navigateRoute(String? route) {
+  void _handleDeepLink(dynamic data) {
+    String? route;
+    String? overlayPkg;
+    bool isFromOverlay = false;
+
+    if (data is Map) {
+      route = data['route'] as String?;
+      overlayPkg = data['overlay_pkg'] as String?;
+      isFromOverlay = (data['is_from_overlay'] as bool?) ?? false;
+    } else if (data is String) {
+      route = data;
+      isFromOverlay = data.contains('overlay');
+    }
+
     if (route == 'math_sprint') {
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const MathSprintScreen()),
+        MaterialPageRoute(
+          builder: (_) => MathSprintScreen(
+            isFromOverlay: isFromOverlay,
+            overlayPackage: overlayPkg,
+            onComplete: () {
+              if (mounted) {
+                // Ensure user lands back on Home tab (Dashboard)
+                setState(() => _selectedIndex = 0);
+              }
+            },
+          ),
+        ),
       );
     }
   }

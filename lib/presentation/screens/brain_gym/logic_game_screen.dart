@@ -77,13 +77,19 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
   }
 
   Future<void> _finishGame() async {
-    final summary = await _repository.recordGameResult(
-      mode: BrainGymGameMode.logicGrid,
-      score: _score,
-      correctAnswers: _correctCount,
-      totalQuestions: totalQuestions,
-      maxCombo: _maxCombo,
-    );
+    BrainGymResultSummary summary;
+    try {
+      summary = await _repository.recordGameResult(
+        mode: BrainGymGameMode.logicGrid,
+        score: _score,
+        correctAnswers: _correctCount,
+        totalQuestions: totalQuestions,
+        maxCombo: _maxCombo,
+      );
+    } catch (e, st) {
+      debugPrint('Error recording logic game score: $e\n$st');
+      return;
+    }
 
     if (!mounted) return;
 
@@ -243,163 +249,176 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
             color: _feedbackColor,
           ),
           SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close_rounded, color: AppColors.textPrimary),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(2),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            minHeight: 2,
-                            backgroundColor: AppColors.surfaceRaised,
-                            valueColor: const AlwaysStoppedAnimation(AppColors.primary),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        '${_currentIndex + 1}/$totalQuestions',
-                        style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'SCORE: $_score',
-                        style: const TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600),
-                      ),
-                      if (_combo > 1)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceRaised,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: Text(
-                            '${_combo}x COMBO',
-                            style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600, fontSize: 11, letterSpacing: 0.5),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
-                    ),
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
                     child: Column(
                       children: [
-                        const Text(
-                          'LOGIC GRID & PATTERN',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.1,
-                            fontSize: 10,
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.close_rounded, color: AppColors.textPrimary),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(2),
+                                  child: LinearProgressIndicator(
+                                    value: progress,
+                                    minHeight: 2,
+                                    backgroundColor: AppColors.surfaceRaised,
+                                    valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                '${_currentIndex + 1}/$totalQuestions',
+                                style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600, fontSize: 12),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _currentQuestion.prompt,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w300,
-                            letterSpacing: 0.5,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'SCORE: $_score',
+                                style: const TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600),
+                              ),
+                              if (_combo > 1)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceRaised,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: AppColors.border),
+                                  ),
+                                  child: Text(
+                                    '${_combo}x COMBO',
+                                    style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600, fontSize: 11, letterSpacing: 0.5),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
-                        if (_currentQuestion.hint != null && _isAnswered) ...[
-                          const SizedBox(height: 12),
-                          Text(
-                            _currentQuestion.hint!,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 12,
+                        const Spacer(),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Column(
+                              children: [
+                                const Text(
+                                  'ODD ONE OUT & LOGIC',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 1.1,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    _currentQuestion.prompt,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w300,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                                if (_currentQuestion.hint != null && _isAnswered) ...[
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    _currentQuestion.hint!,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
-                        ],
+                        ),
+                        const Spacer(),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            children: (_currentQuestion.options).map((opt) {
+                              Color btnColor = AppColors.surface;
+                              Color textColor = AppColors.textPrimary;
+                              BorderSide border = const BorderSide(color: AppColors.border);
+
+                              if (_isAnswered) {
+                                if (opt == _currentQuestion.answer) {
+                                  btnColor = AppColors.primary;
+                                  textColor = AppColors.onPrimary;
+                                  border = const BorderSide(color: AppColors.primary);
+                                } else if (opt == _selectedAnswer) {
+                                  btnColor = AppColors.surfaceRaised;
+                                  textColor = AppColors.textSecondary;
+                                  border = const BorderSide(color: AppColors.disabled);
+                                } else {
+                                  textColor = AppColors.disabled;
+                                }
+                              }
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: InkWell(
+                                  onTap: () => _onOptionSelected(opt),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    decoration: BoxDecoration(
+                                      color: btnColor,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.fromBorderSide(border),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        opt,
+                                        style: TextStyle(
+                                          color: textColor,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
                 ),
-                const Spacer(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    children: (_currentQuestion.options).map((opt) {
-                      Color btnColor = AppColors.surface;
-                      Color textColor = AppColors.textPrimary;
-                      BorderSide border = const BorderSide(color: AppColors.border);
-
-                      if (_isAnswered) {
-                        if (opt == _currentQuestion.answer) {
-                          btnColor = AppColors.primary;
-                          textColor = AppColors.onPrimary;
-                          border = const BorderSide(color: AppColors.primary);
-                        } else if (opt == _selectedAnswer) {
-                          btnColor = AppColors.surfaceRaised;
-                          textColor = AppColors.textSecondary;
-                          border = const BorderSide(color: AppColors.disabled);
-                        } else {
-                          textColor = AppColors.disabled;
-                        }
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: InkWell(
-                          onTap: () => _onOptionSelected(opt),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            decoration: BoxDecoration(
-                              color: btnColor,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.fromBorderSide(border),
-                            ),
-                            child: Center(
-                              child: Text(
-                                opt,
-                                style: TextStyle(
-                                  color: textColor,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
+              ),
             ),
           ),
         ],

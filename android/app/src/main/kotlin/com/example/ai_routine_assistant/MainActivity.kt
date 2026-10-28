@@ -18,7 +18,7 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.example.ai_routine_assistant/usage"
     private var methodChannel: MethodChannel? = null
-    private var pendingRoute: String? = null
+    private var pendingRouteArgs: Map<String, Any?>? = null
 
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,8 +34,15 @@ class MainActivity : FlutterActivity() {
     private fun handleLaunchIntent(intent: Intent?) {
         val route = intent?.getStringExtra("route")
         if (route != null) {
-            pendingRoute = route
-            methodChannel?.invokeMethod("onDeepLinkRoute", route)
+            val overlayPkg = intent.getStringExtra("overlay_pkg")
+            val isFromOverlay = intent.getBooleanExtra("is_from_overlay", false)
+            val args = mapOf<String, Any?>(
+                "route" to route,
+                "overlay_pkg" to overlayPkg,
+                "is_from_overlay" to isFromOverlay
+            )
+            pendingRouteArgs = args
+            methodChannel?.invokeMethod("onDeepLinkRoute", args)
         }
     }
 
@@ -47,9 +54,9 @@ class MainActivity : FlutterActivity() {
         methodChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
                 "getLaunchRoute" -> {
-                    val route = pendingRoute
-                    pendingRoute = null
-                    result.success(route)
+                    val args = pendingRouteArgs
+                    pendingRouteArgs = null
+                    result.success(args)
                 }
                 "checkUsagePermission" -> {
                     result.success(hasUsageStatsPermission())

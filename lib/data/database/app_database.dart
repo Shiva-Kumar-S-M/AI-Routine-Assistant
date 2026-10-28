@@ -23,6 +23,11 @@ class AppDatabase {
       version: 4,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
+      onOpen: (db) async {
+        // Ensure all tables and default rows exist across schema updates
+        await _createBrainGymTables(db);
+        await _createEarlyWarningTables(db);
+      },
     );
   }
 

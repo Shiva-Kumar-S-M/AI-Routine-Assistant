@@ -17,6 +17,7 @@ class BrainGymHubScreen extends StatefulWidget {
 class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
   final BrainGymRepository _repository = BrainGymRepository();
   bool _loading = true;
+  String? _loadError;
   BrainGymProfile _profile = BrainGymProfile.initial();
   Map<String, int> _personalBests = {};
   List<BrainGymScore> _recentScores = [];
@@ -28,18 +29,32 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
   }
 
   Future<void> _loadData() async {
-    setState(() => _loading = true);
-    final profile = await _repository.getProfile();
-    final personalBests = await _repository.getPersonalBests();
-    final recents = await _repository.getHighScores(limit: 10);
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
 
-    if (mounted) {
-      setState(() {
-        _profile = profile;
-        _personalBests = personalBests;
-        _recentScores = recents;
-        _loading = false;
-      });
+    try {
+      final profile = await _repository.getProfile();
+      final personalBests = await _repository.getPersonalBests();
+      final recents = await _repository.getHighScores(limit: 10);
+
+      if (mounted) {
+        setState(() {
+          _profile = profile;
+          _personalBests = personalBests;
+          _recentScores = recents;
+          _loading = false;
+        });
+      }
+    } catch (e, st) {
+      debugPrint('Error loading Brain Gym data: $e\n$st');
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _loadError = 'Could not load Brain Gym: $e';
+        });
+      }
     }
   }
 
@@ -58,6 +73,41 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
         backgroundColor: AppColors.background,
         body: Center(
           child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+
+    if (_loadError != null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline_rounded, color: AppColors.textSecondary, size: 48),
+                  const SizedBox(height: 16),
+                  Text(
+                    _loadError!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _loadData,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.onPrimary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       );
     }
@@ -115,7 +165,7 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
                 ),
                 const SizedBox(height: 10),
                 _buildGameCard(
-                  title: 'Logic Grid',
+                  title: 'Odd One Out',
                   subtitle: 'Analogies, classifications & odd-one-out reasoning.',
                   icon: Icons.extension_outlined,
                   mode: BrainGymGameMode.logicGrid,
@@ -220,9 +270,13 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      '• ${_profile.gamesPlayed} games played',
-                      style: const TextStyle(color: AppColors.disabled, fontSize: 11),
+                    Flexible(
+                      child: Text(
+                        '• ${_profile.gamesPlayed} games played',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: AppColors.disabled, fontSize: 11),
+                      ),
                     ),
                   ],
                 ),

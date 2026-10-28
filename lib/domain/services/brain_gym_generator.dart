@@ -84,11 +84,14 @@ class BrainGymGenerator {
 
       case 5:
       default:
-        // Complex chaining
-        final a = r.nextInt(9) + 4;
-        final b = r.nextInt(7) + 3;
-        final c = r.nextInt(20) + 5;
-        final ans = (a * b) - c;
+        // Complex chaining with guaranteed positive answer (fits numpad without negative sign)
+        final a = r.nextInt(9) + 4; // 4..12
+        final b = r.nextInt(7) + 3; // 3..9
+        final product = a * b; // 12..108
+        // Ensure c is strictly less than product so answer is always > 0
+        final maxC = min(20, product - 2);
+        final c = r.nextInt(maxC > 1 ? maxC : 1) + 1;
+        final ans = product - c;
         return BrainQuestion(prompt: '$a × $b - $c = ?', answer: '$ans', difficulty: 5);
     }
   }
@@ -170,10 +173,13 @@ class BrainGymGenerator {
     final variant = r.nextInt(4);
 
     if (variant == 0) {
-      // Numerical Analogy: A : A^2 :: B : ?
+      // Numerical Analogy: A : A^2 :: B : ? (ensure target != base)
       final base = r.nextInt(6) + 3;
       final square = base * base;
-      final target = r.nextInt(6) + 3;
+      int target = r.nextInt(6) + 3;
+      while (target == base) {
+        target = r.nextInt(6) + 3;
+      }
       final ans = target * target;
       final options = _generateDistractors(ans, r);
       return BrainQuestion(
@@ -288,12 +294,20 @@ class BrainGymGenerator {
 
   static List<String> _generateDistractors(int answer, Random r) {
     final set = <int>{answer};
-    while (set.length < 4) {
+    int attempts = 0;
+    while (set.length < 4 && attempts < 50) {
+      attempts++;
       final delta = (r.nextInt(7) + 1) * (r.nextBool() ? 1 : -1);
       final candidate = answer + delta;
       if (candidate >= 0 && candidate != answer) {
         set.add(candidate);
       }
+    }
+    // Safety fallback if random generation stalled
+    int fallbackOffset = 1;
+    while (set.length < 4) {
+      set.add(answer + fallbackOffset);
+      fallbackOffset++;
     }
     final list = set.map((e) => '$e').toList()..shuffle(r);
     return list;
