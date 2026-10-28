@@ -17,59 +17,58 @@ class CategoryPickerDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF181827) : Colors.white;
-    final textColor = isDark ? Colors.white : const Color(0xFF202124);
-    final subtextColor = isDark ? Colors.white60 : const Color(0xFF5F6368);
-    final borderColor = isDark ? const Color(0xFF2E2E48) : AppColors.border;
-
     return AlertDialog(
-      backgroundColor: bgColor,
+      backgroundColor: AppColors.surface,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      title: Text(
-        'Select App Category',
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.border, width: 1.0),
+      ),
+      title: const Text(
+        'SELECT APP CATEGORY',
         style: TextStyle(
-          color: textColor,
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w600,
+          fontSize: 13,
+          letterSpacing: 1.2,
         ),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildOption(context, 'productive', 'Productive',
-              Icons.check_circle_outline, AppColors.productive, isDark),
+              Icons.check_circle_outline),
           const SizedBox(height: 8),
           _buildOption(context, 'distracting', 'Distracting',
-              Icons.warning_amber_rounded, AppColors.distracting, isDark),
+              Icons.warning_amber_outlined),
           const SizedBox(height: 8),
           _buildOption(context, 'neutral', 'Neutral / System',
-              Icons.remove_circle_outline, AppColors.neutral, isDark),
+              Icons.remove_circle_outline),
           if (isCustom && onReset != null) ...[
-            Divider(color: borderColor, height: 24),
+            const Divider(color: AppColors.border, height: 24),
             InkWell(
               onTap: () {
                 onReset!();
                 Navigator.of(context).pop();
               },
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: borderColor),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.border),
                 ),
-                child: Row(
+                child: const Row(
                   children: [
-                    Icon(Icons.restore, color: subtextColor),
-                    const SizedBox(width: 12),
+                    Icon(Icons.restore_outlined, color: AppColors.textSecondary, size: 18),
+                    SizedBox(width: 12),
                     Text(
                       'Reset to Default',
                       style: TextStyle(
-                        color: subtextColor,
+                        color: AppColors.textSecondary,
                         fontWeight: FontWeight.w500,
+                        fontSize: 13,
                       ),
                     ),
                   ],
@@ -87,39 +86,42 @@ class CategoryPickerDialog extends StatelessWidget {
     String value,
     String label,
     IconData icon,
-    Color color,
-    bool isDark,
   ) {
     final isSelected = currentCategory == value;
-    final textColor = isDark ? Colors.white : const Color(0xFF202124);
     return InkWell(
       onTap: () {
         onSelected(value);
         Navigator.of(context).pop();
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: isDark ? 0.22 : 0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected
+              ? AppColors.surfaceRaised
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? color : Colors.transparent,
+            color: isSelected ? AppColors.textPrimary : AppColors.border,
+            width: 1.0,
           ),
         ),
         child: Row(
           children: [
-            Icon(icon, color: color),
+            Icon(icon, color: isSelected ? AppColors.textPrimary : AppColors.textSecondary, size: 18),
             const SizedBox(width: 12),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? color : textColor,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  fontSize: 13,
+                ),
               ),
             ),
-            const Spacer(),
-            if (isSelected) Icon(Icons.check_rounded, color: color),
+            if (isSelected)
+              const Icon(Icons.check, color: AppColors.textPrimary, size: 16),
           ],
         ),
       ),

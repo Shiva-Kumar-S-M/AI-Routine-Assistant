@@ -19,12 +19,6 @@ class AlertTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDistraction = alert.type == AlertType.distractionAlert;
-    final color = isDistraction ? AppColors.distracting : AppColors.primary;
-    final bg = isDistraction
-        ? AppColors.distractingContainer
-        : AppColors.primaryContainer;
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
       onTap: onTap ?? () => _showDetailSheet(context, alert),
@@ -32,24 +26,25 @@ class AlertTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF181827) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isDark ? const Color(0xFF2B2B44) : AppColors.border),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border, width: 1.0),
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: bg,
-                shape: BoxShape.circle,
+                color: AppColors.surfaceRaised,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.border, width: 1.0),
               ),
               child: Icon(
                 isDistraction
-                    ? Icons.warning_amber_rounded
-                    : Icons.psychology_outlined,
-                color: color,
-                size: 20,
+                    ? Icons.warning_amber_outlined
+                    : Icons.schedule_outlined,
+                color: AppColors.textPrimary,
+                size: 18,
               ),
             ),
             const SizedBox(width: 14),
@@ -59,10 +54,10 @@ class AlertTile extends StatelessWidget {
                 children: [
                   Text(
                     alert.message,
-                    style: TextStyle(
-                      color: isDark ? Colors.white : const Color(0xFF202124),
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
                       fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -72,15 +67,17 @@ class AlertTile extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: bg,
+                          color: AppColors.surfaceRaised,
                           borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: AppColors.border, width: 0.5),
                         ),
                         child: Text(
-                          isDistraction ? 'Distraction' : 'Routine',
-                          style: TextStyle(
-                            color: color,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                          isDistraction ? 'DISTRACTION' : 'ROUTINE',
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.8,
                           ),
                         ),
                       ),
@@ -88,7 +85,7 @@ class AlertTile extends StatelessWidget {
                       Text(
                         _relativeTime(alert.timestamp),
                         style: const TextStyle(
-                          color: Color(0xFF5F6368),
+                          color: AppColors.textSecondary,
                           fontSize: 11,
                         ),
                       ),
@@ -97,7 +94,7 @@ class AlertTile extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Color(0xFF80868B), size: 18),
+            const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 16),
           ],
         ),
       ),
@@ -106,17 +103,17 @@ class AlertTile extends StatelessWidget {
 
   void _showDetailSheet(BuildContext context, RoutineAlert alert) {
     final isDistraction = alert.type == AlertType.distractionAlert;
-    final color = isDistraction ? AppColors.distracting : AppColors.primary;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: isDark ? const Color(0xFF181827) : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => Padding(
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
         padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          border: Border(top: BorderSide(color: AppColors.border, width: 1.0)),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,10 +121,10 @@ class AlertTile extends StatelessWidget {
             Center(
               child: Container(
                 width: 36,
-                height: 4,
+                height: 3,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF33334A) : Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(1.5),
                 ),
               ),
             ),
@@ -136,19 +133,20 @@ class AlertTile extends StatelessWidget {
               children: [
                 Icon(
                   isDistraction
-                      ? Icons.warning_amber_rounded
-                      : Icons.psychology_outlined,
-                  color: color,
-                  size: 28,
+                      ? Icons.warning_amber_outlined
+                      : Icons.schedule_outlined,
+                  color: AppColors.textPrimary,
+                  size: 22,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    isDistraction ? 'Distraction Alert' : 'Routine Detected',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : const Color(0xFF202124),
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                    isDistraction ? 'DISTRACTION ALERT' : 'ROUTINE DETECTED',
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.0,
                     ),
                   ),
                 ),
@@ -157,16 +155,16 @@ class AlertTile extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               alert.message,
-              style: TextStyle(
-                color: isDark ? const Color(0xFFE0E0EC) : const Color(0xFF202124),
+              style: const TextStyle(
+                color: AppColors.textPrimary,
                 fontSize: 14,
                 height: 1.4,
               ),
             ),
             const SizedBox(height: 16),
-            _detailRow(Icons.apps, 'Package', alert.packageName),
+            _detailRow(Icons.apps_outlined, 'Package', alert.packageName),
             _detailRow(
-              Icons.access_time,
+              Icons.access_time_outlined,
               'Triggered at',
               '${alert.timestamp.hour.toString().padLeft(2, '0')}:'
                   '${alert.timestamp.minute.toString().padLeft(2, '0')} · '
@@ -178,28 +176,29 @@ class AlertTile extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8F9FA),
+                  color: AppColors.surfaceRaised,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE0E0E0)),
+                  border: Border.all(color: AppColors.border, width: 1.0),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.account_tree_outlined, size: 18, color: Color(0xFF1B4F8A)),
+                        Icon(Icons.account_tree_outlined, size: 16, color: AppColors.textSecondary),
                         SizedBox(width: 8),
                         Text(
-                          'Why Flagged (Decision Tree Transparency)',
+                          'DECISION TREE SIGNALS',
                           style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1B4F8A),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                            letterSpacing: 1.0,
                           ),
                         ),
                       ],
                     ),
-                    const Divider(height: 16),
+                    const Divider(height: 16, color: AppColors.border),
                     ...alert.triggerConditions!.entries.map((entry) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 2),
@@ -208,14 +207,14 @@ class AlertTile extends StatelessWidget {
                           children: [
                             Text(
                               entry.key,
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF5F6368)),
+                              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                             ),
                             Text(
                               '${entry.value}',
                               style: const TextStyle(
                                 fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF202124),
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ],
@@ -235,22 +234,22 @@ class AlertTile extends StatelessWidget {
 
   Widget _detailRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.only(top: 8),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF5F6368), size: 18),
+          Icon(icon, color: AppColors.textSecondary, size: 16),
           const SizedBox(width: 10),
           Text(
             '$label: ',
-            style: const TextStyle(color: Color(0xFF5F6368), fontSize: 13),
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
           ),
           Expanded(
             child: Text(
               value,
               style: const TextStyle(
-                color: Color(0xFF202124),
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),

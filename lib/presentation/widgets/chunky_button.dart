@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/constants/app_colors.dart';
 
 class ChunkyButton extends StatefulWidget {
   final String text;
@@ -20,8 +21,8 @@ class ChunkyButton extends StatefulWidget {
     this.color,
     this.textColor,
     this.gradient,
-    this.height = 54,
-    this.borderRadius = 20,
+    this.height = 50,
+    this.borderRadius = 16,
     this.isSecondary = false,
   });
 
@@ -39,9 +40,9 @@ class _ChunkyButtonState extends State<ChunkyButton>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 150),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
@@ -70,55 +71,49 @@ class _ChunkyButtonState extends State<ChunkyButton>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final disableMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final isEnabled = widget.onPressed != null;
+
+    final Color bgColor = !isEnabled
+        ? AppColors.surfaceRaised
+        : (widget.isSecondary
+            ? Colors.transparent
+            : (widget.color ?? AppColors.primary));
+
+    final Color fgColor = !isEnabled
+        ? AppColors.textDisabled
+        : (widget.textColor ??
+            (widget.isSecondary ? AppColors.textPrimary : AppColors.onPrimary));
+
+    final Border? border = widget.isSecondary
+        ? Border.all(color: isEnabled ? AppColors.border : AppColors.border.withValues(alpha: 0.5), width: 1.0)
+        : null;
 
     Widget child = Container(
       height: widget.height,
       decoration: BoxDecoration(
-        color: widget.gradient == null
-            ? (widget.color ??
-                (widget.isSecondary
-                    ? const Color(0xFF232338)
-                    : theme.colorScheme.primary))
-            : null,
-        gradient: widget.gradient != null
-            ? LinearGradient(colors: widget.gradient!)
-            : null,
+        color: bgColor,
         borderRadius: BorderRadius.circular(widget.borderRadius),
-        border: widget.isSecondary
-            ? Border.all(color: const Color(0xFF383854), width: 1.5)
-            : null,
-        boxShadow: widget.isSecondary || widget.onPressed == null
-            ? null
-            : [
-                BoxShadow(
-                  color: (widget.color ?? theme.colorScheme.primary)
-                      .withValues(alpha: 0.3),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
+        border: border,
       ),
       child: Center(
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (widget.icon != null) ...[
-              Icon(
-                widget.icon,
-                color: widget.textColor ?? Colors.white,
-                size: 20,
-              ),
+              Icon(widget.icon, color: fgColor, size: 18),
               const SizedBox(width: 8),
             ],
             Text(
               widget.text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: widget.textColor ?? Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-                letterSpacing: 0.3,
+                color: fgColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.2,
               ),
             ),
           ],
@@ -144,4 +139,3 @@ class _ChunkyButtonState extends State<ChunkyButton>
     );
   }
 }
-

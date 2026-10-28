@@ -98,35 +98,25 @@ class _HistoryScreenState extends State<HistoryScreen>
     return '${hours}h ${remMins}m';
   }
 
-  Color _getCategoryColor(String cat) {
-    switch (cat) {
-      case 'productive':
-        return AppColors.productive;
-      case 'distracting':
-        return AppColors.distracting;
-      default:
-        return AppColors.neutral;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
           'Analytics & History',
           style: TextStyle(
-            color: Color(0xFF202124),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.3,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF5F6368)),
+            icon: const Icon(Icons.refresh, color: AppColors.textSecondary),
             onPressed: _loadHistoryData,
             tooltip: 'Refresh Data',
           ),
@@ -134,7 +124,8 @@ class _HistoryScreenState extends State<HistoryScreen>
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
-          labelColor: AppColors.primary,
+          indicatorWeight: 2,
+          labelColor: AppColors.textPrimary,
           unselectedLabelColor: AppColors.textSecondary,
           labelStyle:
               const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
@@ -167,22 +158,23 @@ class _HistoryScreenState extends State<HistoryScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.border),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFEF7E0),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceRaised,
                     shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: const Icon(
-                    Icons.star_rounded,
-                    color: Color(0xFFF9AB00),
-                    size: 28,
+                    Icons.trending_up_rounded,
+                    color: AppColors.textPrimary,
+                    size: 24,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -193,19 +185,19 @@ class _HistoryScreenState extends State<HistoryScreen>
                       Text(
                         '$_streakDays-Day Focus Streak',
                         style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF202124),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         _streakDays > 0
-                            ? 'Great job! Keep maintaining your productive routines.'
-                            : 'Achieve a high productivity score today to start a new streak.',
+                            ? 'Maintaining daily routines below distraction limits.'
+                            : 'Achieve daily target to start a new focus streak.',
                         style: const TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF5F6368),
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -214,67 +206,70 @@ class _HistoryScreenState extends State<HistoryScreen>
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
           // 7-Day Usage Trend
           const Text(
-            '7-Day Usage Trend',
+            '7-DAY USAGE TREND',
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF202124),
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.1,
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.border),
             ),
             child: TrendChart(dailyTotals: _trendTotals),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
           // Category Share Breakdown
           const Text(
-            "Today's Category Share",
+            "TODAY'S CATEGORY SHARE",
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF202124),
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.1,
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.border),
             ),
             child: CategoryChart(categoryTotals: _todayCategoryTotals),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
           // Search & Filters Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Today App Activity Logs',
+                'ACTIVITY LOGS',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF202124),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.1,
+                  color: AppColors.textSecondary,
                 ),
               ),
               Text(
                 '${_filteredLogs.length} sessions',
                 style: const TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF5F6368),
+                  color: AppColors.textSecondary,
                 ),
               ),
             ],
@@ -289,28 +284,33 @@ class _HistoryScreenState extends State<HistoryScreen>
                 _applyFilters();
               });
             },
-            style: const TextStyle(color: Color(0xFF202124), fontSize: 14),
+            style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Search app logs by name...',
-              prefixIcon: const Icon(Icons.search, size: 20),
+              hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              prefixIcon: const Icon(Icons.search, size: 18, color: AppColors.textSecondary),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: AppColors.surfaceRaised,
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: AppColors.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.primary),
               ),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
           // Category Filter Chips
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _filterChip('all', 'All Categories'),
+                _filterChip('all', 'All'),
                 const SizedBox(width: 8),
                 _filterChip('productive', 'Productive'),
                 const SizedBox(width: 8),
@@ -320,25 +320,25 @@ class _HistoryScreenState extends State<HistoryScreen>
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
           if (_filteredLogs.isEmpty)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.border),
               ),
               child: const Column(
                 children: [
                   Icon(Icons.search_off_outlined,
-                      size: 40, color: Color(0xFF80868B)),
+                      size: 36, color: AppColors.disabled),
                   SizedBox(height: 12),
                   Text(
                     'No matching activity logs found',
-                    style: TextStyle(color: Color(0xFF5F6368), fontSize: 13),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                   ),
                 ],
               ),
@@ -351,28 +351,28 @@ class _HistoryScreenState extends State<HistoryScreen>
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
                 final log = _filteredLogs[index];
-                final catColor = _getCategoryColor(log.category);
 
                 return Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.border),
                   ),
                   child: Row(
                     children: [
                       Container(
-                        width: 40,
-                        height: 40,
+                        width: 36,
+                        height: 36,
                         decoration: BoxDecoration(
-                          color: catColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
+                          color: AppColors.surfaceRaised,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.border),
                         ),
-                        child: Icon(
-                          Icons.android_rounded,
-                          color: catColor,
-                          size: 22,
+                        child: const Icon(
+                          Icons.smartphone_rounded,
+                          color: AppColors.textPrimary,
+                          size: 18,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -387,7 +387,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
-                                color: Color(0xFF202124),
+                                color: AppColors.textPrimary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -397,7 +397,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                               '${DateFormat('h:mm a').format(log.startTime)} - ${DateFormat('h:mm a').format(log.endTime)}',
                               style: const TextStyle(
                                 fontSize: 11,
-                                color: Color(0xFF5F6368),
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
@@ -409,25 +409,27 @@ class _HistoryScreenState extends State<HistoryScreen>
                           Text(
                             _formatDuration(log.durationSeconds),
                             style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                               fontSize: 13,
-                              color: Color(0xFF202124),
+                              color: AppColors.textPrimary,
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 3),
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: catColor.withValues(alpha: 0.12),
+                              color: AppColors.surfaceRaised,
                               borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: AppColors.border),
                             ),
                             child: Text(
                               log.category.toUpperCase(),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                                color: catColor,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ),
@@ -457,14 +459,15 @@ class _HistoryScreenState extends State<HistoryScreen>
           });
         }
       },
-      selectedColor: AppColors.primaryContainer,
+      selectedColor: AppColors.primary,
+      backgroundColor: AppColors.surfaceRaised,
       labelStyle: TextStyle(
-        color: isSelected ? AppColors.primary : const Color(0xFF5F6368),
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        color: isSelected ? AppColors.onPrimary : AppColors.textSecondary,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
         fontSize: 12,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         side: BorderSide(
           color: isSelected ? AppColors.primary : AppColors.border,
         ),
@@ -474,21 +477,21 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   Widget _buildFocusHistoryTab() {
     if (_focusSessions.isEmpty) {
-      return Center(
+      return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.timer_off_outlined,
-                size: 56, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
-            const Text(
+            Icon(Icons.timer_outlined,
+                size: 48, color: AppColors.disabled),
+            SizedBox(height: 16),
+            Text(
               'No completed focus sessions recorded',
-              style: TextStyle(fontSize: 15, color: Color(0xFF5F6368)),
+              style: TextStyle(fontSize: 14, color: AppColors.textPrimary),
             ),
-            const SizedBox(height: 6),
-            const Text(
+            SizedBox(height: 6),
+            Text(
               'Start a focus session from the Focus tab to build your log',
-              style: TextStyle(fontSize: 12, color: Color(0xFF80868B)),
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -508,23 +511,24 @@ class _HistoryScreenState extends State<HistoryScreen>
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.border),
           ),
           child: Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE6F4EA),
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceRaised,
                   shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: const Icon(
-                  Icons.check_circle_outline_rounded,
-                  color: Color(0xFF1E8E3E),
-                  size: 24,
+                  Icons.check_rounded,
+                  color: AppColors.textPrimary,
+                  size: 20,
                 ),
               ),
               const SizedBox(width: 14),
@@ -535,9 +539,9 @@ class _HistoryScreenState extends State<HistoryScreen>
                     Text(
                       '${session.durationMinutes}-Minute Focus Session',
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         fontSize: 14,
-                        color: Color(0xFF202124),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -545,7 +549,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                       '$dateStr • $timeStr',
                       style: const TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF5F6368),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -555,15 +559,17 @@ class _HistoryScreenState extends State<HistoryScreen>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.surfaceRaised,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: const Text(
                   'COMPLETED',
                   style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    fontSize: 9,
+                    letterSpacing: 0.8,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),

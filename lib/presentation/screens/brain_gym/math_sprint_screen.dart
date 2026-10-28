@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ai_routine_assistant/domain/models/brain_gym_models.dart';
-import 'package:ai_routine_assistant/domain/services/brain_gym_generator.dart';
-import 'package:ai_routine_assistant/data/repositories/brain_gym_repository.dart';
-import 'package:ai_routine_assistant/presentation/widgets/level_up_dialog.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../domain/models/brain_gym_models.dart';
+import '../../../domain/services/brain_gym_generator.dart';
+import '../../../data/repositories/brain_gym_repository.dart';
+import '../../widgets/level_up_dialog.dart';
 
 class MathSprintScreen extends StatefulWidget {
   final bool isDailyChallenge;
@@ -51,7 +52,7 @@ class _MathSprintScreenState extends State<MathSprintScreen>
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
-    _comboScale = Tween<double>(begin: 1.0, end: 1.3).animate(
+    _comboScale = Tween<double>(begin: 1.0, end: 1.2).animate(
       CurvedAnimation(parent: _comboAnimController, curve: Curves.easeOutBack),
     );
 
@@ -132,7 +133,6 @@ class _MathSprintScreenState extends State<MathSprintScreen>
       _combo++;
       if (_combo > _maxCombo) _maxCombo = _combo;
 
-      // Combo multiplier: 1x, 2x (3+), 3x (6+), 4x (10+), 5x (15+)
       int multiplier = 1;
       if (_combo >= 15) {
         multiplier = 5;
@@ -148,12 +148,12 @@ class _MathSprintScreenState extends State<MathSprintScreen>
       _score += points;
 
       _comboAnimController.forward().then((_) => _comboAnimController.reverse());
-      _flashFeedback(const Color(0x3300C853));
+      _flashFeedback(Colors.white.withValues(alpha: 0.08));
       _nextQuestion();
     } else {
       HapticFeedback.heavyImpact();
       _combo = 0;
-      _flashFeedback(const Color(0x33FF1744));
+      _flashFeedback(Colors.white.withValues(alpha: 0.16));
       setState(() => _currentInput = '');
     }
   }
@@ -161,7 +161,7 @@ class _MathSprintScreenState extends State<MathSprintScreen>
   void _flashFeedback(Color color) {
     _feedbackTimer?.cancel();
     setState(() => _feedbackColor = color);
-    _feedbackTimer = Timer(const Duration(milliseconds: 250), () {
+    _feedbackTimer = Timer(const Duration(milliseconds: 200), () {
       if (mounted) setState(() => _feedbackColor = Colors.transparent);
     });
   }
@@ -204,42 +204,44 @@ class _MathSprintScreenState extends State<MathSprintScreen>
 
   Widget _buildResultSheet(BuildContext ctx, BrainGymResultSummary summary) {
     return Container(
-      padding: const EdgeInsets.all(28),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 48,
-            height: 5,
+            width: 36,
+            height: 4,
             margin: const EdgeInsets.only(bottom: 20),
             decoration: BoxDecoration(
-              color: const Color(0xFFE0E0E0),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.disabled,
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
           Text(
-            summary.isNewPersonalBest ? '🏆 NEW PERSONAL BEST!' : 'SPRINT FINISHED',
+            summary.isNewPersonalBest ? 'NEW PERSONAL BEST' : 'SPRINT FINISHED',
             style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
-              color: Color(0xFF3D5AFE),
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.1,
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             '${summary.score} Points',
             style: const TextStyle(
-              fontSize: 34,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF202124),
+              fontSize: 32,
+              fontWeight: FontWeight.w300,
+              letterSpacing: -0.5,
+              color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
 
           // 3-Metric Stats Row
           Row(
@@ -250,26 +252,27 @@ class _MathSprintScreenState extends State<MathSprintScreen>
               _resultStat('Rating Delta', summary.ratingDelta >= 0 ? '+${summary.ratingDelta}' : '${summary.ratingDelta}'),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           // XP reward badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFFF9100).withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
+              color: AppColors.surfaceRaised,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.star_rounded, color: Color(0xFFFF9100), size: 18),
+                const Icon(Icons.star_outline_rounded, color: AppColors.textPrimary, size: 16),
                 const SizedBox(width: 6),
                 Text(
                   '+${summary.xpAwarded} XP Gained',
                   style: const TextStyle(
-                    color: Color(0xFFFF9100),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -286,10 +289,12 @@ class _MathSprintScreenState extends State<MathSprintScreen>
                     Navigator.of(context).pop();
                   },
                   style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.border),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Back to Hub'),
+                  child: const Text('Back to Hub', style: TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -311,11 +316,13 @@ class _MathSprintScreenState extends State<MathSprintScreen>
                     _startTimer();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3D5AFE),
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.onPrimary,
+                    elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Play Again', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: const Text('Play Again', style: TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ),
             ],
@@ -332,16 +339,16 @@ class _MathSprintScreenState extends State<MathSprintScreen>
           value,
           style: const TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF202124),
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           label,
           style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFF70757A),
+            fontSize: 11,
+            color: AppColors.textSecondary,
           ),
         ),
       ],
@@ -351,15 +358,11 @@ class _MathSprintScreenState extends State<MathSprintScreen>
   @override
   Widget build(BuildContext context) {
     final timerPercent = (_secondsRemaining / totalRoundSeconds).clamp(0.0, 1.0);
-    final timerColor = _secondsRemaining <= 10
-        ? const Color(0xFFFF1744)
-        : (_secondsRemaining <= 25 ? const Color(0xFFFF9100) : const Color(0xFF3D5AFE));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Background flash feedback
           AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             color: _feedbackColor,
@@ -375,7 +378,7 @@ class _MathSprintScreenState extends State<MathSprintScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, color: Color(0xFF202124)),
+                        icon: const Icon(Icons.close_rounded, color: AppColors.textPrimary),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
 
@@ -383,19 +386,20 @@ class _MathSprintScreenState extends State<MathSprintScreen>
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
-                          color: timerColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
+                          color: AppColors.surfaceRaised,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.border),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.timer_outlined, color: timerColor, size: 18),
+                            const Icon(Icons.timer_outlined, color: AppColors.textPrimary, size: 16),
                             const SizedBox(width: 6),
                             Text(
                               '${_secondsRemaining}s',
-                              style: TextStyle(
-                                color: timerColor,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 16,
+                              style: const TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
                               ),
                             ),
                           ],
@@ -409,20 +413,21 @@ class _MathSprintScreenState extends State<MathSprintScreen>
                           Text(
                             '$_score PTS',
                             style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFF202124),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           if (_combo >= 2)
                             ScaleTransition(
                               scale: _comboScale,
                               child: Text(
-                                '🔥 ${_combo}x COMBO',
+                                '${_combo}x COMBO',
                                 style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFF9100),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.8,
+                                  color: AppColors.textSecondary,
                                 ),
                               ),
                             ),
@@ -435,9 +440,9 @@ class _MathSprintScreenState extends State<MathSprintScreen>
                 // Linear Timer Bar
                 LinearProgressIndicator(
                   value: timerPercent,
-                  backgroundColor: const Color(0xFFEEEEEE),
-                  valueColor: AlwaysStoppedAnimation<Color>(timerColor),
-                  minHeight: 4,
+                  backgroundColor: AppColors.surfaceRaised,
+                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  minHeight: 2,
                 ),
 
                 // Equation Hero Card
@@ -447,16 +452,9 @@ class _MathSprintScreenState extends State<MathSprintScreen>
                     margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: const Color(0xFFE8EAED)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Center(
                       child: Column(
@@ -465,31 +463,31 @@ class _MathSprintScreenState extends State<MathSprintScreen>
                           Text(
                             _currentQuestion.prompt,
                             style: const TextStyle(
-                              fontSize: 38,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF202124),
-                              letterSpacing: 1.0,
+                              fontSize: 40,
+                              fontWeight: FontWeight.w300,
+                              color: AppColors.textPrimary,
+                              letterSpacing: 0.5,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
 
                           // User Input Box
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F3F4),
-                              borderRadius: BorderRadius.circular(16),
+                              color: AppColors.surfaceRaised,
+                              borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: _currentInput.isNotEmpty ? const Color(0xFF3D5AFE) : Colors.transparent,
-                                width: 2,
+                                color: _currentInput.isNotEmpty ? AppColors.primary : AppColors.border,
+                                width: 1,
                               ),
                             ),
                             child: Text(
                               _currentInput.isEmpty ? '?' : _currentInput,
                               style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: _currentInput.isEmpty ? const Color(0xFF9AA0A6) : const Color(0xFF3D5AFE),
+                                fontSize: 28,
+                                fontWeight: FontWeight.w600,
+                                color: _currentInput.isEmpty ? AppColors.disabled : AppColors.textPrimary,
                               ),
                             ),
                           ),
@@ -499,7 +497,7 @@ class _MathSprintScreenState extends State<MathSprintScreen>
                   ),
                 ),
 
-                // Big Custom Number Pad (Optimized for rapid one-thumb typing)
+                // Big Custom Number Pad
                 Expanded(
                   flex: 4,
                   child: Container(
@@ -538,16 +536,16 @@ class _MathSprintScreenState extends State<MathSprintScreen>
                             children: [
                               _actionKey(
                                 icon: Icons.backspace_outlined,
-                                color: const Color(0xFFF1F3F4),
-                                iconColor: const Color(0xFF5F6368),
+                                color: AppColors.surfaceRaised,
+                                iconColor: AppColors.textSecondary,
                                 onTap: _onBackspace,
                                 onLongPress: _onClear,
                               ),
                               _numpadKey('0'),
                               _actionKey(
                                 icon: Icons.check_rounded,
-                                color: const Color(0xFF3D5AFE),
-                                iconColor: Colors.white,
+                                color: AppColors.primary,
+                                iconColor: AppColors.onPrimary,
                                 onTap: _onSubmit,
                               ),
                             ],
@@ -568,22 +566,26 @@ class _MathSprintScreenState extends State<MathSprintScreen>
   Widget _numpadKey(String digit) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.all(5),
+        padding: const EdgeInsets.all(4),
         child: Material(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          elevation: 1,
-          shadowColor: Colors.black.withValues(alpha: 0.08),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
           child: InkWell(
             onTap: () => _onDigitPress(digit),
-            borderRadius: BorderRadius.circular(18),
-            child: Center(
-              child: Text(
-                digit,
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF202124),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Center(
+                child: Text(
+                  digit,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
             ),
@@ -602,18 +604,22 @@ class _MathSprintScreenState extends State<MathSprintScreen>
   }) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.all(5),
+        padding: const EdgeInsets.all(4),
         child: Material(
           color: color,
-          borderRadius: BorderRadius.circular(18),
-          elevation: color == const Color(0xFF3D5AFE) ? 2 : 1,
-          shadowColor: Colors.black.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(14),
           child: InkWell(
             onTap: onTap,
             onLongPress: onLongPress,
-            borderRadius: BorderRadius.circular(18),
-            child: Center(
-              child: Icon(icon, color: iconColor, size: 28),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Center(
+                child: Icon(icon, color: iconColor, size: 24),
+              ),
             ),
           ),
         ),

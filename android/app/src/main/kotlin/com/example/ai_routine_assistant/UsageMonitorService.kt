@@ -360,23 +360,22 @@ class UsageMonitorService : Service() {
                 gravity = Gravity.CENTER
             }
 
-            // Root scrim — dark immersive backdrop
+            // Root scrim — pure black immersive backdrop (#0B0B0C)
             val root = LinearLayout(this@UsageMonitorService).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER
-                setBackgroundColor(Color.parseColor("#F50A0A12"))
-                // No tap-to-dismiss on root
+                setBackgroundColor(Color.parseColor("#FF0B0B0C"))
             }
 
-            // Card container
+            // Card container (#131314, 20dp corners, 1px #262628 border)
             val card = LinearLayout(this@UsageMonitorService).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER_HORIZONTAL
                 setPadding(dpToPx(24), dpToPx(28), dpToPx(24), dpToPx(24))
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#1C1C2A"))
-                    cornerRadius = dpToPx(24).toFloat()
-                    setStroke(dpToPx(1), Color.parseColor("#38384E"))
+                    setColor(Color.parseColor("#131314"))
+                    cornerRadius = dpToPx(20).toFloat()
+                    setStroke(dpToPx(1), Color.parseColor("#262628"))
                 }
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -391,46 +390,50 @@ class UsageMonitorService : Service() {
             if (appIcon != null) {
                 card.addView(ImageView(this@UsageMonitorService).apply {
                     setImageDrawable(appIcon)
-                    layoutParams = LinearLayout.LayoutParams(dpToPx(56), dpToPx(56)).apply {
+                    layoutParams = LinearLayout.LayoutParams(dpToPx(48), dpToPx(48)).apply {
                         setMargins(0, 0, 0, dpToPx(12))
                     }
                 })
-            } else {
-                card.addView(TextView(this@UsageMonitorService).apply {
-                    text = "⚡"
-                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 44f)
-                    gravity = Gravity.CENTER
-                    setPadding(0, 0, 0, dpToPx(10))
-                })
             }
 
-            // App Name & Title
+            // App Name Tracked Label
             card.addView(TextView(this@UsageMonitorService).apply {
-                text = "Limit Reached: $appName"
-                setTextColor(Color.WHITE)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+                text = appName.uppercase()
+                setTextColor(Color.parseColor("#8E8E93"))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
+                letterSpacing = 0.12f
                 setTypeface(typeface, Typeface.BOLD)
                 gravity = Gravity.CENTER
-                setPadding(0, 0, 0, dpToPx(4))
+                setPadding(0, 0, 0, dpToPx(6))
             })
 
-            // Today's Usage vs Limit Stat
-            val statText = "$timeFormatted used  ·  ${overMins}m over limit"
+            // Big clean numbers for time over limit
             card.addView(TextView(this@UsageMonitorService).apply {
-                text = statText
-                setTextColor(Color.parseColor("#FF6E6E"))
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+                text = "+${overMins}m"
+                setTextColor(Color.parseColor("#F5F5F5"))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 44f)
+                setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL))
+                gravity = Gravity.CENTER
+                setPadding(0, 0, 0, dpToPx(2))
+            })
+
+            // Subtitle Stat
+            card.addView(TextView(this@UsageMonitorService).apply {
+                text = "OVER DAILY LIMIT · $timeFormatted USED"
+                setTextColor(Color.parseColor("#8E8E93"))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
+                letterSpacing = 0.1f
                 setTypeface(typeface, Typeface.BOLD)
                 gravity = Gravity.CENTER
-                setPadding(0, 0, 0, dpToPx(16))
+                setPadding(0, 0, 0, dpToPx(18))
             })
 
             // Psychological Hook Message
             card.addView(TextView(this@UsageMonitorService).apply {
                 text = hookMessage
-                setTextColor(Color.parseColor("#E0E0E8"))
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
-                setLineSpacing(dpToPx(3).toFloat(), 1.2f)
+                setTextColor(Color.parseColor("#F5F5F5"))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                setLineSpacing(dpToPx(3).toFloat(), 1.25f)
                 gravity = Gravity.CENTER
                 setPadding(dpToPx(6), 0, dpToPx(6), dpToPx(24))
             })
@@ -445,22 +448,21 @@ class UsageMonitorService : Service() {
                 )
             }
 
-            // Button 1: "Take me back" (Primary)
+            // Button 1: "Take me back" (Primary — Solid White with Black text)
             val btnTakeBack = Button(this@UsageMonitorService).apply {
-                text = "⚡ Take me back (+20 XP)"
-                setTextColor(Color.WHITE)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+                text = "Take me back"
+                setTextColor(Color.parseColor("#000000"))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
                 setTypeface(typeface, Typeface.BOLD)
                 background = GradientDrawable().apply {
-                    colors = intArrayOf(Color.parseColor("#7C4DFF"), Color.parseColor("#651FFF"))
-                    orientation = GradientDrawable.Orientation.LEFT_RIGHT
-                    cornerRadius = dpToPx(20).toFloat()
+                    setColor(Color.parseColor("#FFFFFF"))
+                    cornerRadius = dpToPx(14).toFloat()
                 }
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    dpToPx(52)
+                    dpToPx(48)
                 ).apply {
-                    setMargins(0, 0, 0, dpToPx(12))
+                    setMargins(0, 0, 0, dpToPx(10))
                 }
                 setOnClickListener {
                     logIntervention(pkg, "turn_back", usedMins, limitMins, hookType)
@@ -474,22 +476,22 @@ class UsageMonitorService : Service() {
                 }
             }
 
-            // Button 2: "Brain challenge instead"
+            // Button 2: "Brain challenge instead" (Surface Raised)
             val btnBrainChallenge = Button(this@UsageMonitorService).apply {
-                text = "🧠 Brain challenge instead (+40 XP)"
-                setTextColor(Color.parseColor("#00E676"))
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                text = "Brain challenge instead"
+                setTextColor(Color.parseColor("#F5F5F5"))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
                 setTypeface(typeface, Typeface.BOLD)
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#1B2E28"))
-                    cornerRadius = dpToPx(20).toFloat()
-                    setStroke(dpToPx(1), Color.parseColor("#00E676"))
+                    setColor(Color.parseColor("#1A1A1C"))
+                    cornerRadius = dpToPx(14).toFloat()
+                    setStroke(dpToPx(1), Color.parseColor("#262628"))
                 }
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    dpToPx(50)
+                    dpToPx(46)
                 ).apply {
-                    setMargins(0, 0, 0, dpToPx(12))
+                    setMargins(0, 0, 0, dpToPx(10))
                 }
                 setOnClickListener {
                     logIntervention(pkg, "brain_challenge", usedMins, limitMins, hookType)
@@ -503,22 +505,22 @@ class UsageMonitorService : Service() {
                 }
             }
 
-            // Button 3: "Continue anyway" (Friction Countdown)
+            // Button 3: "Continue anyway" (Friction Countdown, Outlined 1px)
             var countdownSeconds = 5
             val btnContinue = Button(this@UsageMonitorService).apply {
-                text = "⏳ Friction Pause: 5s"
-                setTextColor(Color.parseColor("#8E8EA8"))
+                text = "Pause: 5s"
+                setTextColor(Color.parseColor("#48484A"))
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
                 isEnabled = false
-                alpha = 0.5f
+                alpha = 0.6f
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#222234"))
-                    cornerRadius = dpToPx(20).toFloat()
-                    setStroke(dpToPx(1), Color.parseColor("#38384E"))
+                    setColor(Color.TRANSPARENT)
+                    cornerRadius = dpToPx(14).toFloat()
+                    setStroke(dpToPx(1), Color.parseColor("#262628"))
                 }
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    dpToPx(48)
+                    dpToPx(44)
                 )
                 setOnClickListener {
                     packageSnoozeUntil[pkg] = System.currentTimeMillis() + SNOOZE_DURATION_MS
@@ -531,11 +533,11 @@ class UsageMonitorService : Service() {
                 override fun run() {
                     countdownSeconds--
                     if (countdownSeconds > 0) {
-                        btnContinue.text = "⏳ Friction Pause: ${countdownSeconds}s"
+                        btnContinue.text = "Pause: ${countdownSeconds}s"
                         handler.postDelayed(this, 1000L)
                     } else {
                         btnContinue.text = "Continue anyway"
-                        btnContinue.setTextColor(Color.parseColor("#C5CAE9"))
+                        btnContinue.setTextColor(Color.parseColor("#F5F5F5"))
                         btnContinue.isEnabled = true
                         btnContinue.alpha = 1.0f
                     }

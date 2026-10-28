@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ai_routine_assistant/domain/models/brain_gym_models.dart';
-import 'package:ai_routine_assistant/domain/services/brain_gym_generator.dart';
-import 'package:ai_routine_assistant/data/repositories/brain_gym_repository.dart';
-import 'package:ai_routine_assistant/presentation/widgets/level_up_dialog.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../domain/models/brain_gym_models.dart';
+import '../../../domain/services/brain_gym_generator.dart';
+import '../../../data/repositories/brain_gym_repository.dart';
+import '../../widgets/level_up_dialog.dart';
 
 class MemoryFlashScreen extends StatefulWidget {
   const MemoryFlashScreen({super.key});
@@ -128,21 +129,31 @@ class _MemoryFlashScreenState extends State<MemoryFlashScreen> {
       enableDrag: false,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        padding: const EdgeInsets.all(28),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: AppColors.border),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: AppColors.disabled,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
             const Text(
-              'MEMORY FLASH COMPLETE',
+              'MEMORY FLASH COMPLETED',
               style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.5,
-                color: Color(0xFF00B0FF),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.1,
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 8),
@@ -150,14 +161,15 @@ class _MemoryFlashScreenState extends State<MemoryFlashScreen> {
               '$_score Points',
               style: const TextStyle(
                 fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF202124),
+                fontWeight: FontWeight.w300,
+                letterSpacing: -0.5,
+                color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             Text(
               'Reached Round $_round ($_sequenceLength tiles) · Rating Delta: ${summary.ratingDelta >= 0 ? "+${summary.ratingDelta}" : "${summary.ratingDelta}"}',
-              style: const TextStyle(fontSize: 14, color: Color(0xFF5F6368)),
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -168,11 +180,13 @@ class _MemoryFlashScreenState extends State<MemoryFlashScreen> {
                   Navigator.of(context).pop();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00B0FF),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.onPrimary,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Back to Hub', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: const Text('Back to Hub', style: TextStyle(fontWeight: FontWeight.w600)),
               ),
             ),
           ],
@@ -184,7 +198,7 @@ class _MemoryFlashScreenState extends State<MemoryFlashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -195,36 +209,36 @@ class _MemoryFlashScreenState extends State<MemoryFlashScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: Color(0xFF202124)),
+                    icon: const Icon(Icons.close_rounded, color: AppColors.textPrimary),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   Text(
                     'Round $_round · $_sequenceLength Tiles',
                     style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF5F6368),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   Text(
                     '$_score PTS',
                     style: const TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF202124),
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               Text(
-                _isPlayingSequence ? 'WATCH THE SEQUENCE...' : 'REPEAT THE PATTERN',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.5,
-                  color: _isPlayingSequence ? const Color(0xFFFF9100) : const Color(0xFF00C853),
+                _isPlayingSequence ? 'WATCH SEQUENCE' : 'REPEAT PATTERN',
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
+                  color: AppColors.textSecondary,
                 ),
               ),
               const Spacer(),
@@ -233,54 +247,44 @@ class _MemoryFlashScreenState extends State<MemoryFlashScreen> {
               AspectRatio(
                 aspectRatio: 1.0,
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(28),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: GridView.builder(
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
                     ),
                     itemCount: 9,
                     itemBuilder: (context, index) {
                       final isFlashing = _activeFlashingTile == index;
                       final isTapped = _userSequence.contains(index);
 
-                      Color tileColor = const Color(0xFFF1F3F4);
+                      Color tileColor = AppColors.surfaceRaised;
+                      Border border = Border.all(color: AppColors.border);
+
                       if (isFlashing) {
-                        tileColor = const Color(0xFF00B0FF);
+                        tileColor = AppColors.primary;
+                        border = Border.all(color: AppColors.primary, width: 2);
                       } else if (isTapped) {
-                        tileColor = const Color(0xFF80D8FF).withValues(alpha: 0.5);
+                        tileColor = AppColors.surfaceRaised;
+                        border = Border.all(color: AppColors.primary, width: 1.5);
                       }
 
                       return InkWell(
                         onTap: () => _onTileTap(index),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 180),
                           decoration: BoxDecoration(
                             color: tileColor,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: isFlashing
-                                ? [
-                                    BoxShadow(
-                                      color: const Color(0xFF00B0FF).withValues(alpha: 0.5),
-                                      blurRadius: 16,
-                                      spreadRadius: 2,
-                                    ),
-                                  ]
-                                : null,
+                            borderRadius: BorderRadius.circular(14),
+                            border: border,
                           ),
                         ),
                       );
@@ -292,7 +296,7 @@ class _MemoryFlashScreenState extends State<MemoryFlashScreen> {
 
               Text(
                 'Remember ${_currentSequence.length} highlighted tiles in order',
-                style: const TextStyle(fontSize: 12, color: Color(0xFF70757A)),
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 16),
             ],

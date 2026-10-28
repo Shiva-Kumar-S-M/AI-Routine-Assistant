@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_colors.dart';
 import '../../data/repositories/progress_repository.dart';
 import '../../domain/models/weekly_recap.dart';
 import '../widgets/chunky_button.dart';
@@ -34,48 +35,38 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0E0E18),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
-          'Weekly Recap',
+          'WEEKLY RECAP',
           style: TextStyle(
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-            fontSize: 22,
-            letterSpacing: -0.3,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+            fontSize: 14,
+            letterSpacing: 1.2,
           ),
         ),
-        backgroundColor: const Color(0xFF0E0E18),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.textPrimary))
           : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Hero Banner
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(22),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF7C4DFF), Color(0xFF651FFF)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(26),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF7C4DFF).withValues(alpha: 0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border, width: 1.0),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,132 +76,125 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
                           children: [
                             const Flexible(
                               child: Text(
-                                'YOUR 7-DAY TRIUMPH',
+                                '7-DAY SUMMARY',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 11,
-                                  fontWeight: FontWeight.w900,
+                                  fontWeight: FontWeight.w600,
                                   letterSpacing: 1.2,
-                                  color: Colors.white70,
+                                  color: AppColors.textSecondary,
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(12),
+                                color: AppColors.surfaceRaised,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: AppColors.border, width: 0.5),
                               ),
-                              child: const Row(
-                                children: [
-                                  Icon(Icons.bolt_rounded, color: Color(0xFFFFD700), size: 16),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    '100% OFFLINE',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
+                              child: const Text(
+                                'ON-DEVICE',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1.0,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 12),
                         Text(
                           '${_recap!.winsCount} Focus Wins',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontSize: 32,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.w300,
+                            letterSpacing: -1.0,
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Text(
+                        const Text(
                           'You resisted impulse opens and completed dedicated focus intervals.',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                            fontSize: 13,
                             height: 1.4,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
 
                   // 2x2 Metric Cards
                   Row(
                     children: [
                       Expanded(
                         child: _metricCard(
-                          title: 'Time Reclaimed',
+                          title: 'TIME RECLAIMED',
                           value: _recap!.formattedTimeReclaimed,
-                          icon: Icons.hourglass_top_rounded,
-                          color: const Color(0xFF00E676),
+                          icon: Icons.hourglass_top_outlined,
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: _metricCard(
-                          title: 'XP Earned',
-                          value: '+${_recap!.xpGained} XP',
-                          icon: Icons.star_rounded,
-                          color: const Color(0xFFFF9100),
+                          title: 'XP EARNED',
+                          value: '+${_recap!.xpGained}',
+                          icon: Icons.star_border_outlined,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _metricCard(
+                          title: 'BEST FOCUS DAY',
+                          value: _recap!.bestDayName,
+                          icon: Icons.calendar_today_outlined,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _metricCard(
+                          title: 'INTERVENTIONS',
+                          value: '${_recap!.winsCount} wins',
+                          icon: Icons.shield_outlined,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _metricCard(
-                          title: 'Best Focus Day',
-                          value: _recap!.bestDayName,
-                          icon: Icons.calendar_today_rounded,
-                          color: const Color(0xFF00E5FF),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: _metricCard(
-                          title: 'Intervention Wins',
-                          value: '${_recap!.winsCount} turns',
-                          icon: Icons.shield_rounded,
-                          color: const Color(0xFF7C4DFF),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 22),
 
                   // Algorithmic Smart Tip Card
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF181827),
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: const Color(0xFF2B2B44)),
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border, width: 1.0),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.lightbulb_rounded, color: Color(0xFFFFB300), size: 24),
+                            Icon(Icons.lightbulb_outline, color: AppColors.textSecondary, size: 20),
                             SizedBox(width: 8),
                             Text(
                               'AI ROUTINE ADVICE',
                               style: TextStyle(
                                 fontSize: 11,
-                                fontWeight: FontWeight.w900,
+                                fontWeight: FontWeight.w600,
                                 letterSpacing: 1.2,
-                                color: Color(0xFF8E8EA2),
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
@@ -219,23 +203,22 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
                         Text(
                           _recap!.smartTip,
                           style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.textPrimary,
                             height: 1.45,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 24),
 
                   ChunkyButton(
-                    text: 'Keep Crushing It',
-                    icon: Icons.check_circle_rounded,
-                    height: 54,
-                    borderRadius: 18,
-                    color: const Color(0xFF7C4DFF),
+                    text: 'Dismiss',
+                    height: 48,
+                    borderRadius: 14,
+                    isSecondary: false,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   const SizedBox(height: 24),
@@ -249,41 +232,38 @@ class _WeeklyRecapScreenState extends State<WeeklyRecapScreen> {
     required String title,
     required String value,
     required IconData icon,
-    required Color color,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF181827),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF2B2B44)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 1.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
+          Icon(icon, color: AppColors.textSecondary, size: 20),
           const SizedBox(height: 12),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w300,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF8E8EA2),
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+              letterSpacing: 1.0,
             ),
           ),
         ],

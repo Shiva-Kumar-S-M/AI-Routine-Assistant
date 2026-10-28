@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_colors.dart';
 import '../../data/repositories/progress_repository.dart';
 import '../../domain/models/user_progress.dart';
 import '../../domain/models/badge_item.dart';
@@ -40,68 +41,66 @@ class _JourneyScreenState extends State<JourneyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0E0E18),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
-          'Your Journey',
+          'YOUR JOURNEY',
           style: TextStyle(
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-            fontSize: 22,
-            letterSpacing: -0.3,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+            fontSize: 14,
+            letterSpacing: 1.2,
           ),
         ),
-        backgroundColor: const Color(0xFF0E0E18),
+        backgroundColor: AppColors.background,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF8E8EA2)),
+            icon: const Icon(Icons.refresh_outlined, color: AppColors.textSecondary, size: 20),
             onPressed: _loadData,
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.textPrimary))
           : RefreshIndicator(
               onRefresh: _loadData,
-              color: const Color(0xFF7C4DFF),
+              color: AppColors.textPrimary,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // 1. Level & XP Hero Card
                     _levelCard(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
 
                     // 2. Streaks & Time Reclaimed Row
                     Row(
                       children: [
-                        // Streak Flame
+                        // Streak
                         Expanded(
                           child: _statPill(
-                            title: 'Active Streak',
-                            value: '${_progress!.streakDays} Days',
-                            subtitle: '${_progress!.streakFreezes} Freezes Available',
-                            icon: Icons.local_fire_department_rounded,
-                            iconColor: const Color(0xFFFF5722),
+                            title: 'ACTIVE STREAK',
+                            value: '${_progress!.streakDays}d',
+                            subtitle: '${_progress!.streakFreezes} freezes banked',
+                            icon: Icons.local_fire_department_outlined,
                           ),
                         ),
                         const SizedBox(width: 12),
                         // Time Reclaimed
                         Expanded(
                           child: _statPill(
-                            title: 'Time Reclaimed',
+                            title: 'TIME RECLAIMED',
                             value: _progress!.formattedTimeReclaimed,
                             subtitle: 'Saved from scrolling',
-                            icon: Icons.hourglass_bottom_rounded,
-                            iconColor: const Color(0xFF00E676),
+                            icon: Icons.hourglass_bottom_outlined,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 12),
 
                     // 3. Weekly Recap Entry Banner
                     InkWell(
@@ -110,19 +109,17 @@ class _JourneyScreenState extends State<JourneyScreen> {
                           MaterialPageRoute(builder: (_) => const WeeklyRecapScreen()),
                         );
                       },
-                      borderRadius: BorderRadius.circular(22),
+                      borderRadius: BorderRadius.circular(16),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF281E48), Color(0xFF1E1738)],
-                          ),
-                          borderRadius: BorderRadius.circular(22),
-                          border: Border.all(color: const Color(0xFF4C3672)),
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.border, width: 1.0),
                         ),
                         child: const Row(
                           children: [
-                            Icon(Icons.auto_graph_rounded, color: Color(0xFFFFD700), size: 28),
+                            Icon(Icons.auto_graph_outlined, color: AppColors.textPrimary, size: 22),
                             SizedBox(width: 14),
                             Expanded(
                               child: Column(
@@ -131,25 +128,25 @@ class _JourneyScreenState extends State<JourneyScreen> {
                                   Text(
                                     'Weekly Focus Recap',
                                     style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
+                                      color: AppColors.textPrimary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
                                     ),
                                   ),
                                   SizedBox(height: 2),
                                   Text(
-                                    'Wins, reclaimed hours & algorithmic insights',
-                                    style: TextStyle(color: Color(0xFF9E9EAF), fontSize: 12),
+                                    'Wins, reclaimed hours & behavioral trends',
+                                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                                   ),
                                 ],
                               ),
                             ),
-                            Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF7C4DFF), size: 16),
+                            Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 18),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 26),
+                    const SizedBox(height: 24),
 
                     // 4. Badges & Trophies Section
                     Row(
@@ -158,31 +155,31 @@ class _JourneyScreenState extends State<JourneyScreen> {
                         const Text(
                           'BADGES & ACHIEVEMENTS',
                           style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
                             letterSpacing: 1.2,
-                            color: Color(0xFF8E8EA2),
+                            color: AppColors.textSecondary,
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1F1F35),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFF33334E)),
+                            color: AppColors.surfaceRaised,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.border, width: 1.0),
                           ),
                           child: Text(
                             '${_badges.where((b) => b.isUnlocked).length} / ${_badges.length}',
                             style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFFFFD700),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
                     // Badges Grid
                     GridView.builder(
@@ -190,9 +187,9 @@ class _JourneyScreenState extends State<JourneyScreen> {
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        childAspectRatio: 0.88,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
+                        childAspectRatio: 0.95,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
                       ),
                       itemCount: _badges.length,
                       itemBuilder: (context, index) {
@@ -209,15 +206,11 @@ class _JourneyScreenState extends State<JourneyScreen> {
 
   Widget _levelCard() {
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF261D4E), Color(0xFF1B1736)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF4C3876)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 1.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,21 +218,20 @@ class _JourneyScreenState extends State<JourneyScreen> {
           Row(
             children: [
               Container(
-                width: 54,
-                height: 54,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF7C4DFF), Color(0xFF651FFF)],
-                  ),
-                  borderRadius: BorderRadius.circular(18),
+                  color: AppColors.surfaceRaised,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border, width: 1.0),
                 ),
                 child: Center(
                   child: Text(
                     '${_progress!.level}',
                     style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 24,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w300,
+                      fontSize: 22,
                     ),
                   ),
                 ),
@@ -252,9 +244,9 @@ class _JourneyScreenState extends State<JourneyScreen> {
                     Text(
                       'LEVEL ${_progress!.level}',
                       style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF7C4DFF),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -262,40 +254,40 @@ class _JourneyScreenState extends State<JourneyScreen> {
                     Text(
                       _progress!.levelTitle,
                       style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF332515),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFFFB300)),
+                  color: AppColors.surfaceRaised,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.border, width: 1.0),
                 ),
                 child: Text(
                   '${_progress!.xp} XP',
                   style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFFFFD700),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(2),
             child: LinearProgressIndicator(
               value: _progress!.levelProgress,
-              minHeight: 10,
-              backgroundColor: const Color(0xFF262040),
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF7C4DFF)),
+              minHeight: 2,
+              backgroundColor: AppColors.border,
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.textPrimary),
             ),
           ),
           const SizedBox(height: 8),
@@ -307,7 +299,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
                   '${(_progress!.levelProgress * 100).toInt()}% towards next tier',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF8E8EA2)),
+                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                 ),
               ),
               const SizedBox(width: 8),
@@ -317,7 +309,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.end,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF9E9EAF)),
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
                 ),
               ),
             ],
@@ -332,34 +324,36 @@ class _JourneyScreenState extends State<JourneyScreen> {
     required String value,
     required String subtitle,
     required IconData icon,
-    required Color iconColor,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF181827),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF2B2B44)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 1.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: iconColor, size: 26),
+          Icon(icon, color: AppColors.textSecondary, size: 20),
           const SizedBox(height: 10),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w300,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 11,
-              color: Color(0xFF8E8EA2),
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -369,16 +363,15 @@ class _JourneyScreenState extends State<JourneyScreen> {
 
   Widget _badgeCard(BadgeItem badge) {
     final isUnlocked = badge.isUnlocked;
-    final primaryColor = isUnlocked ? const Color(0xFF7C4DFF) : const Color(0xFF5A5A72);
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF181827),
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isUnlocked ? const Color(0xFF7C4DFF).withValues(alpha: 0.5) : const Color(0xFF26263A),
-          width: isUnlocked ? 1.5 : 1,
+          color: isUnlocked ? AppColors.textPrimary : AppColors.border,
+          width: 1.0,
         ),
       ),
       child: Column(
@@ -388,21 +381,20 @@ class _JourneyScreenState extends State<JourneyScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: isUnlocked
-                      ? const Color(0xFF7C4DFF).withValues(alpha: 0.2)
-                      : const Color(0xFF202032),
-                  shape: BoxShape.circle,
+                  color: AppColors.surfaceRaised,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.border, width: 0.5),
                 ),
                 child: Icon(
-                  isUnlocked ? Icons.verified_rounded : Icons.lock_outline_rounded,
-                  size: 20,
-                  color: primaryColor,
+                  isUnlocked ? Icons.verified_outlined : Icons.lock_outline,
+                  size: 16,
+                  color: isUnlocked ? AppColors.textPrimary : AppColors.textDisabled,
                 ),
               ),
               if (isUnlocked)
-                const Icon(Icons.check_circle_rounded, color: Color(0xFF00E676), size: 16),
+                const Icon(Icons.check, color: AppColors.textPrimary, size: 14),
             ],
           ),
           const Spacer(),
@@ -411,9 +403,9 @@ class _JourneyScreenState extends State<JourneyScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: isUnlocked ? Colors.white : const Color(0xFF7A7A90),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isUnlocked ? AppColors.textPrimary : AppColors.textDisabled,
             ),
           ),
           const SizedBox(height: 4),
@@ -423,26 +415,26 @@ class _JourneyScreenState extends State<JourneyScreen> {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 10,
-              color: Color(0xFF8E8EA2),
+              color: AppColors.textSecondary,
               height: 1.3,
             ),
           ),
           const SizedBox(height: 8),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(2),
             child: LinearProgressIndicator(
               value: badge.progressFraction,
-              minHeight: 4,
-              backgroundColor: const Color(0xFF252538),
+              minHeight: 2,
+              backgroundColor: AppColors.border,
               valueColor: AlwaysStoppedAnimation<Color>(
-                isUnlocked ? const Color(0xFF00E676) : const Color(0xFF4A4A62),
+                isUnlocked ? AppColors.textPrimary : AppColors.textDisabled,
               ),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             '${badge.currentProgress}/${badge.maxProgress}',
-            style: const TextStyle(fontSize: 9, color: Color(0xFF6E6E84)),
+            style: const TextStyle(fontSize: 9, color: AppColors.textSecondary),
           ),
         ],
       ),

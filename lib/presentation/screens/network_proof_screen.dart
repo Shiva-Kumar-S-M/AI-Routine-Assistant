@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_colors.dart';
 
 class NetworkProofScreen extends StatelessWidget {
   const NetworkProofScreen({super.key});
@@ -6,50 +7,56 @@ class NetworkProofScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
-          'Network-Proof Verification',
-          style: TextStyle(color: Color(0xFF202124), fontWeight: FontWeight.bold),
+          'PRIVACY VERIFICATION',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.2,
+          ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF202124)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header Shield Card
             Container(
-              padding: const EdgeInsets.all(20),
+              width: double.infinity,
+              padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1B4F8A), Color(0xFF1A7A4A)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border, width: 1.0),
               ),
-              child: Column(
+              child: const Column(
                 children: [
-                  const Icon(Icons.verified_user_rounded, color: Colors.white, size: 48),
-                  const SizedBox(height: 12),
-                  const Text(
+                  Icon(Icons.shield_outlined, color: AppColors.textPrimary, size: 40),
+                  SizedBox(height: 12),
+                  Text(
                     '100% On-Device Privacy Guaranteed',
                     style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
-                    'AI Routine Assistant operates with ZERO network sockets, zero cloud syncing, and zero remote analytics.',
+                    'AI Routine Assistant operates with ZERO network sockets, zero cloud syncing, and zero remote telemetry.',
                     style: TextStyle(
-                      color: Colors.white.withAlpha(230),
+                      color: AppColors.textSecondary,
                       fontSize: 13,
                       height: 1.4,
                     ),
@@ -61,38 +68,39 @@ class NetworkProofScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             const Text(
-              'Live Privacy Assertions',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF202124)),
+              'LIVE PRIVACY ASSERTIONS',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.2,
+                color: AppColors.textSecondary,
+              ),
             ),
             const SizedBox(height: 12),
 
             _assertionTile(
-              icon: Icons.signal_wifi_off_rounded,
+              icon: Icons.signal_wifi_off_outlined,
               title: 'android.permission.INTERNET',
               status: 'NOT DECLARED',
               description: 'The app does not request internet access from Android OS, making remote outbound connections physically impossible.',
-              isSuccess: true,
             ),
             _assertionTile(
               icon: Icons.hub_outlined,
               title: 'Active Outbound HTTP Sockets',
-              status: '0 Active Sockets',
+              status: '0 ACTIVE SOCKETS',
               description: 'Zero active HTTP, HTTPS, WebSocket, or TCP connections open.',
-              isSuccess: true,
             ),
             _assertionTile(
-              icon: Icons.storage_rounded,
+              icon: Icons.storage_outlined,
               title: 'Telemetry & Log Storage',
-              status: 'Sandboxed SQLite Only',
+              status: 'SANDBOXED SQLITE ONLY',
               description: 'All logs are stored inside application-private sandboxed SQLite storage.',
-              isSuccess: true,
             ),
             _assertionTile(
               icon: Icons.analytics_outlined,
               title: 'Third-Party Analytics SDKs',
-              status: 'None Installed',
+              status: 'NONE INSTALLED',
               description: 'Zero Firebase, Google Analytics, Mixpanel, or AdMob libraries included.',
-              isSuccess: true,
             ),
           ],
         ),
@@ -105,26 +113,26 @@ class NetworkProofScreen extends StatelessWidget {
     required String title,
     required String status,
     required String description,
-    required bool isSuccess,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 1.0),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isSuccess ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
-              shape: BoxShape.circle,
+              color: AppColors.surfaceRaised,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.border, width: 0.5),
             ),
-            child: Icon(icon, color: isSuccess ? const Color(0xFF2E7D32) : const Color(0xFFC62828), size: 22),
+            child: Icon(icon, color: AppColors.textPrimary, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -137,21 +145,23 @@ class NetworkProofScreen extends StatelessWidget {
                     Expanded(
                       child: Text(
                         title,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF202124)),
+                        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: AppColors.textPrimary),
                       ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: isSuccess ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
+                        color: AppColors.surfaceRaised,
                         borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppColors.border, width: 0.5),
                       ),
                       child: Text(
                         status,
-                        style: TextStyle(
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
                           fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: isSuccess ? const Color(0xFF2E7D32) : const Color(0xFFC62828),
+                          letterSpacing: 0.8,
                         ),
                       ),
                     ),
@@ -160,7 +170,7 @@ class NetworkProofScreen extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   description,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF5F6368), height: 1.3),
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.35),
                 ),
               ],
             ),

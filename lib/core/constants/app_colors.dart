@@ -3,77 +3,77 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // ── Dark-First Primary Palette ─────────────────────────────────────────────
-  static const Color primary = Color(0xFF7C4DFF);          // Deep Purple / Violet Accent
-  static const Color primaryLight = Color(0xFFB388FF);     // Light Violet Accent
-  static const Color primaryContainer = Color(0xFF261D4E);
-  static const Color primaryGlow = Color(0xFFB388FF);
-  static const Color onPrimary = Color(0xFFFFFFFF);
-  static const Color onPrimaryContainer = Color(0xFFEDE7F6);
-
-  // ── Surfaces (Dark Theme) ──────────────────────────────────────────────────
-  static const Color background = Color(0xFF0E0E18);       // Deep Cosmic Navy/Black
-  static const Color surface = Color(0xFF181827);          // Card Surface
-  static const Color surfaceElevated = Color(0xFF202035);  // Raised Container
-  static const Color surfaceVariant = Color(0xFF282840);   // Input / Chip Surface
-  static const Color border = Color(0xFF2D2D46);           // Subtle Border
+  // ── Premium Monochrome Palette (Minimal, Calm, Expensive) ─────────────────
+  static const Color background = Color(0xFF0B0B0C);       // Deep black/charcoal
+  static const Color surface = Color(0xFF131314);          // Card surface
+  static const Color surfaceRaised = Color(0xFF1A1A1C);    // Elevated container
+  static const Color surfaceElevated = surfaceRaised;
+  static const Color surfaceVariant = Color(0xFF1E1E20);   // Input / Chip Surface
+  static const Color border = Color(0xFF262628);           // 1px subtle crisp border
   static const Color cardBorder = border;
 
-  // ── Energetic Accent Palette (Matiks-inspired) ─────────────────────────────
-  static const Color productive = Color(0xFF00E676);       // Vibrant Mint Green
-  static const Color productiveContainer = Color(0xFF0F3E2B);
-  static const Color distracting = Color(0xFFFF2A55);      // Electric Coral Red
-  static const Color distractingContainer = Color(0xFF451322);
-  static const Color neutral = Color(0xFF90A4AE);          // Slate Gray
-  static const Color neutralContainer = Color(0xFF222930);
-  static const Color warning = Color(0xFFFFB300);          // Vivid Amber
-  static const Color warningContainer = Color(0xFF3E310E);
-  static const Color fire = Color(0xFFFF5722);             // Flame Orange
-  static const Color cyan = Color(0xFF00E5FF);             // Electric Cyan
-  static const Color gold = Color(0xFFFFD700);             // Trophy Gold
+  // Single Accent = Pure White
+  static const Color primary = Color(0xFFFFFFFF);
+  static const Color onPrimary = Color(0xFF000000);        // Black text on white
+  static const Color primaryLight = Color(0xFFE5E5EA);
+  static const Color primaryContainer = Color(0xFF1A1A1C);
+  static const Color primaryGlow = Color(0xFFFFFFFF);
+  static const Color onPrimaryContainer = Color(0xFFF5F5F5);
 
-  // ── Gradients ──────────────────────────────────────────────────────────────
+  // Text Hierarchy
+  static const Color textPrimary = Color(0xFFF5F5F5);      // Primary crisp white
+  static const Color textSecondary = Color(0xFF8E8E93);    // Secondary neutral gray
+  static const Color textDisabled = Color(0xFF48484A);     // Disabled muted gray
+  static const Color disabled = textDisabled;
+  static const Color textHint = Color(0xFF636366);
+
+  // Grayscale State Indicators (Convey state via typography/contrast, NOT color)
+  static const Color productive = Color(0xFFFFFFFF);
+  static const Color productiveContainer = Color(0xFF1A1A1C);
+  static const Color distracting = Color(0xFF8E8E93);
+  static const Color distractingContainer = Color(0xFF1A1A1C);
+  static const Color neutral = Color(0xFF636366);
+  static const Color neutralContainer = Color(0xFF131314);
+  static const Color warning = Color(0xFFD1D1D6);
+  static const Color warningContainer = Color(0xFF1A1A1C);
+  static const Color fire = Color(0xFFFFFFFF);
+  static const Color cyan = Color(0xFFE5E5EA);
+  static const Color gold = Color(0xFFFFFFFF);
+
+  // Flat Subtle Monochrome Gradients (No bright colors)
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF7C4DFF), Color(0xFF651FFF)],
+    colors: [Color(0xFFFFFFFF), Color(0xFFE5E5EA)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient fireGradient = LinearGradient(
-    colors: [Color(0xFFFF9100), Color(0xFFFF3D00)],
+    colors: [Color(0xFFE5E5EA), Color(0xFFD1D1D6)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient mintGradient = LinearGradient(
-    colors: [Color(0xFF00E676), Color(0xFF00B0FF)],
+    colors: [Color(0xFFFFFFFF), Color(0xFFE5E5EA)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient cardGradient = LinearGradient(
-    colors: [Color(0xFF1E1E32), Color(0xFF161625)],
+    colors: [Color(0xFF131314), Color(0xFF131314)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  // ── Text Hierarchy ─────────────────────────────────────────────────────────
-  static const Color textPrimary = Color(0xFFF6F6FC);
-  static const Color textSecondary = Color(0xFF9A9AA6);
-  static const Color textHint = Color(0xFF636376);
-
-  // ── Score band colours ─────────────────────────────────────────────────────
+  // Grayscale Score Mapping
   static Color scoreColor(int score) {
-    if (score >= 80) return productive;
-    if (score >= 60) return cyan;
-    if (score >= 40) return warning;
-    return distracting;
+    if (score >= 80) return textPrimary;
+    if (score >= 60) return const Color(0xFFD1D1D6);
+    if (score >= 40) return textSecondary;
+    return textDisabled;
   }
 
   static Color scoreContainerColor(int score) {
-    if (score >= 80) return productiveContainer;
-    if (score >= 60) return const Color(0xFF0C343D);
-    if (score >= 40) return warningContainer;
-    return distractingContainer;
+    return surfaceRaised;
   }
 }

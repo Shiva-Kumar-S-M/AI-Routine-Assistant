@@ -25,9 +25,9 @@ class _CategoryChartState extends State<CategoryChart> {
 
   static const _labels = ['productive', 'distracting', 'neutral'];
   static const _colors = [
-    AppColors.productive,
-    AppColors.distracting,
-    AppColors.neutral,
+    Color(0xFFFFFFFF), // pure white
+    Color(0xFF8E8E93), // neutral gray
+    Color(0xFF3A3A3C), // dark slate gray
   ];
   static const _displayNames = ['Productive', 'Distracting', 'Neutral'];
 
@@ -45,7 +45,7 @@ class _CategoryChartState extends State<CategoryChart> {
         alignment: Alignment.center,
         child: const Text(
           'No usage data collected yet today',
-          style: TextStyle(color: Color(0xFF5F6368), fontSize: 13),
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
       );
     }
@@ -56,7 +56,7 @@ class _CategoryChartState extends State<CategoryChart> {
           aspectRatio: 1.6,
           child: PieChart(
             PieChartData(
-              sectionsSpace: 4,
+              sectionsSpace: 3,
               centerSpaceRadius: 42,
               pieTouchData: PieTouchData(
                 touchCallback: (event, response) {
@@ -79,7 +79,8 @@ class _CategoryChartState extends State<CategoryChart> {
                 final isHighlighted = widget.highlightedCategory == null ||
                     widget.highlightedCategory == _labels[i];
                 final isTouched = _touchedIndex == i;
-                final radius = isTouched ? 56.0 : 48.0;
+                final radius = isTouched ? 54.0 : 46.0;
+                final isWhiteSlice = i == 0;
                 return PieChartSectionData(
                   color: _colors[i].withValues(alpha: isHighlighted ? 1.0 : 0.3),
                   value: values[i],
@@ -87,17 +88,17 @@ class _CategoryChartState extends State<CategoryChart> {
                       ? '${(values[i] / total * 100).toStringAsFixed(0)}%'
                       : '',
                   radius: radius,
-                  titleStyle: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                  titleStyle: TextStyle(
+                    color: isWhiteSlice ? Colors.black : Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
                   ),
                 );
               }),
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(3, (i) {
@@ -117,8 +118,8 @@ class _CategoryChartState extends State<CategoryChart> {
                 child: Row(
                   children: [
                     Container(
-                      width: 10,
-                      height: 10,
+                      width: 8,
+                      height: 8,
                       decoration: BoxDecoration(
                         color: _colors[i].withValues(alpha: isActive ? 1.0 : 0.3),
                         shape: BoxShape.circle,
@@ -129,8 +130,8 @@ class _CategoryChartState extends State<CategoryChart> {
                       _displayNames[i],
                       style: TextStyle(
                         color: isActive
-                            ? const Color(0xFF202124)
-                            : const Color(0xFF80868B),
+                            ? AppColors.textPrimary
+                            : AppColors.textSecondary,
                         fontSize: 12,
                         fontWeight:
                             isActive ? FontWeight.w600 : FontWeight.normal,

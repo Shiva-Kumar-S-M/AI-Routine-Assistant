@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ai_routine_assistant/domain/models/brain_gym_models.dart';
-import 'package:ai_routine_assistant/domain/services/brain_gym_generator.dart';
-import 'package:ai_routine_assistant/data/repositories/brain_gym_repository.dart';
-import 'package:ai_routine_assistant/presentation/widgets/level_up_dialog.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../domain/models/brain_gym_models.dart';
+import '../../../domain/services/brain_gym_generator.dart';
+import '../../../data/repositories/brain_gym_repository.dart';
+import '../../widgets/level_up_dialog.dart';
 
 class LogicGameScreen extends StatefulWidget {
   const LogicGameScreen({super.key});
@@ -55,16 +56,16 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
       _combo++;
       if (_combo > _maxCombo) _maxCombo = _combo;
       _score += 15 * _combo;
-      _feedbackColor = const Color(0x3300C853);
+      _feedbackColor = Colors.white.withValues(alpha: 0.08);
     } else {
       HapticFeedback.heavyImpact();
       _combo = 0;
-      _feedbackColor = const Color(0x33FF1744);
+      _feedbackColor = Colors.white.withValues(alpha: 0.16);
     }
 
     setState(() {});
 
-    Timer(const Duration(milliseconds: 700), () {
+    Timer(const Duration(milliseconds: 650), () {
       if (!mounted) return;
       if (_currentIndex + 1 < totalQuestions) {
         setState(() => _currentIndex++);
@@ -108,45 +109,56 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
   Widget _buildResultSheet(BuildContext ctx, BrainGymResultSummary summary) {
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1E1E2C),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(color: AppColors.border),
       ),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              summary.isNewPersonalBest ? '🏆 NEW PERSONAL BEST!' : '🧩 ROUND COMPLETE',
-              style: TextStyle(
-                color: summary.isNewPersonalBest ? const Color(0xFFFFD700) : Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                letterSpacing: 1.2,
+            Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: AppColors.disabled,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 16),
             Text(
-              '$_score',
+              summary.isNewPersonalBest ? 'NEW PERSONAL BEST' : 'ROUND COMPLETED',
               style: const TextStyle(
-                color: Colors.white,
-                fontSize: 48,
-                fontWeight: FontWeight.w900,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600,
+                fontSize: 11,
+                letterSpacing: 1.1,
               ),
             ),
+            const SizedBox(height: 8),
+            Text(
+              '$_score Points',
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 32,
+                fontWeight: FontWeight.w300,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 6),
             Text(
               'Accuracy: ${summary.accuracyPercent.toInt()}% ($_correctCount/$totalQuestions) • Max Combo: ${_maxCombo}x',
-              style: const TextStyle(color: Color(0xFF9E9EAF), fontSize: 13),
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _statBadge('XP EARNED', '+${summary.xpAwarded} XP', const Color(0xFF7C4DFF)),
+                _statBadge('XP EARNED', '+${summary.xpAwarded} XP'),
                 _statBadge(
                   'SKILL RATING',
                   '${summary.newRating} (${summary.ratingDelta >= 0 ? "+${summary.ratingDelta}" : summary.ratingDelta})',
-                  const Color(0xFF00E676),
                 ),
               ],
             ),
@@ -160,12 +172,12 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
                       Navigator.pop(context);
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Color(0xFF3F3F56)),
+                      foregroundColor: AppColors.textPrimary,
+                      side: const BorderSide(color: AppColors.border),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Back to Gym'),
+                    child: const Text('Back to Gym', style: TextStyle(fontWeight: FontWeight.w600)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -183,12 +195,13 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
                       _loadQuestion();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7C4DFF),
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.onPrimary,
+                      elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Play Again'),
+                    child: const Text('Play Again', style: TextStyle(fontWeight: FontWeight.w600)),
                   ),
                 ),
               ],
@@ -199,18 +212,19 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
     );
   }
 
-  Widget _statBadge(String title, String val, Color color) {
+  Widget _statBadge(String title, String val) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF28283C),
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.surfaceRaised,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         children: [
-          Text(title, style: const TextStyle(color: Color(0xFF8E8EA0), fontSize: 11, fontWeight: FontWeight.bold)),
+          Text(title, style: const TextStyle(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 0.8)),
           const SizedBox(height: 4),
-          Text(val, style: TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.w900)),
+          Text(val, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -221,11 +235,11 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
     final progress = (_currentIndex + 1) / totalQuestions;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF13131F),
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 200),
             color: _feedbackColor,
           ),
           SafeArea(
@@ -236,25 +250,25 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                        icon: const Icon(Icons.close_rounded, color: AppColors.textPrimary),
                         onPressed: () => Navigator.pop(context),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(2),
                           child: LinearProgressIndicator(
                             value: progress,
-                            minHeight: 8,
-                            backgroundColor: const Color(0xFF2A2A3E),
-                            valueColor: const AlwaysStoppedAnimation(Color(0xFF7C4DFF)),
+                            minHeight: 2,
+                            backgroundColor: AppColors.surfaceRaised,
+                            valueColor: const AlwaysStoppedAnimation(AppColors.primary),
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Text(
                         '${_currentIndex + 1}/$totalQuestions',
-                        style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600, fontSize: 12),
                       ),
                     ],
                   ),
@@ -266,18 +280,19 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
                     children: [
                       Text(
                         'SCORE: $_score',
-                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+                        style: const TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600),
                       ),
                       if (_combo > 1)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(colors: [Color(0xFFFF9100), Color(0xFFFF3D00)]),
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppColors.surfaceRaised,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.border),
                           ),
                           child: Text(
                             '${_combo}x COMBO',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                            style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600, fontSize: 11, letterSpacing: 0.5),
                           ),
                         ),
                     ],
@@ -288,39 +303,32 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(28),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E2F),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: const Color(0xFF33334D)),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black45,
-                          blurRadius: 20,
-                          offset: Offset(0, 10),
-                        ),
-                      ],
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Column(
                       children: [
                         const Text(
                           'LOGIC GRID & PATTERN',
                           style: TextStyle(
-                            color: Color(0xFF7C4DFF),
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.5,
-                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.1,
+                            fontSize: 10,
                           ),
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 16),
                         Text(
                           _currentQuestion.prompt,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.1,
+                            color: AppColors.textPrimary,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w300,
+                            letterSpacing: 0.5,
                           ),
                         ),
                         if (_currentQuestion.hint != null && _isAnswered) ...[
@@ -329,9 +337,8 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
                             _currentQuestion.hint!,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              color: Color(0xFF9E9EAF),
+                              color: AppColors.textSecondary,
                               fontSize: 12,
-                              fontStyle: FontStyle.italic,
                             ),
                           ),
                         ],
@@ -344,39 +351,44 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: (_currentQuestion.options).map((opt) {
-                      Color btnColor = const Color(0xFF26263B);
-                      BorderSide border = const BorderSide(color: Color(0xFF3D3D56));
+                      Color btnColor = AppColors.surface;
+                      Color textColor = AppColors.textPrimary;
+                      BorderSide border = const BorderSide(color: AppColors.border);
 
                       if (_isAnswered) {
                         if (opt == _currentQuestion.answer) {
-                          btnColor = const Color(0x4D00C853);
-                          border = const BorderSide(color: Color(0xFF00C853), width: 2);
+                          btnColor = AppColors.primary;
+                          textColor = AppColors.onPrimary;
+                          border = const BorderSide(color: AppColors.primary);
                         } else if (opt == _selectedAnswer) {
-                          btnColor = const Color(0x4DFF1744);
-                          border = const BorderSide(color: Color(0xFFFF1744), width: 2);
+                          btnColor = AppColors.surfaceRaised;
+                          textColor = AppColors.textSecondary;
+                          border = const BorderSide(color: AppColors.disabled);
+                        } else {
+                          textColor = AppColors.disabled;
                         }
                       }
 
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(bottom: 10),
                         child: InkWell(
                           onTap: () => _onOptionSelected(opt),
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(12),
                           child: Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                             decoration: BoxDecoration(
                               color: btnColor,
-                              borderRadius: BorderRadius.circular(18),
+                              borderRadius: BorderRadius.circular(12),
                               border: Border.fromBorderSide(border),
                             ),
                             child: Center(
                               child: Text(
                                 opt,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
@@ -395,4 +407,3 @@ class _LogicGameScreenState extends State<LogicGameScreen> {
     );
   }
 }
-

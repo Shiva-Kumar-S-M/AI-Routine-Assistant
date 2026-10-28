@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_colors.dart';
 import '../../services/usage_collector_service.dart';
 import 'main_navigation_screen.dart';
 import 'permission_screen.dart';
@@ -73,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0E0E18),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: Column(
@@ -81,45 +82,34 @@ class _SplashScreenState extends State<SplashScreen>
             children: [
               const Spacer(),
 
-              // App Logo Card with Energetic Glow
+              // Minimal Logo Circle
               ScaleTransition(
                 scale: _scaleAnimation,
                 child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: Container(
-                    width: 124,
-                    height: 124,
+                    width: 100,
+                    height: 100,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF7C4DFF), Color(0xFF651FFF)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF7C4DFF).withValues(alpha: 0.4),
-                          blurRadius: 36,
-                          spreadRadius: 6,
-                        ),
-                      ],
+                      color: AppColors.surface,
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        width: 2,
+                        color: AppColors.border,
+                        width: 1.0,
                       ),
                     ),
                     child: const Center(
                       child: Icon(
-                        Icons.psychology_rounded,
-                        size: 64,
-                        color: Colors.white,
+                        Icons.hourglass_empty_outlined,
+                        size: 44,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 36),
+              const SizedBox(height: 32),
 
               // App Name & Tagline
               FadeTransition(
@@ -127,43 +117,46 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Column(
                   children: [
                     const Text(
-                      'AI Routine Assistant',
+                      'AI ROUTINE ASSISTANT',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: -0.5,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                        letterSpacing: 2.0,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 6),
+                          horizontal: 14, vertical: 5),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0F3E2B),
-                        borderRadius: BorderRadius.circular(16),
+                        color: AppColors.surfaceRaised,
+                        borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                            color: const Color(0xFF00E676).withValues(alpha: 0.4)),
+                          color: AppColors.border,
+                          width: 1.0,
+                        ),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.lock_outline_rounded,
-                            size: 14,
-                            color: Color(0xFF00E676),
+                            Icons.lock_outline,
+                            size: 13,
+                            color: AppColors.textSecondary,
                           ),
                           SizedBox(width: 6),
                           Flexible(
                             child: Text(
-                              '100% On-Device · Privacy First',
+                              '100% ON-DEVICE · ZERO NETWORK',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: Color(0xFF00E676),
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                                color: AppColors.textSecondary,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 1.0,
                               ),
                             ),
                           ),
@@ -178,19 +171,21 @@ class _SplashScreenState extends State<SplashScreen>
 
               // Loading Indicator
               const SizedBox(
-                width: 28,
-                height: 28,
+                width: 22,
+                height: 22,
                 child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C4DFF)),
+                  strokeWidth: 2.0,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.textPrimary),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               const Text(
-                'Calibrating routines...',
+                'INITIALIZING',
                 style: TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF8E8EA2),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 1.5,
                 ),
               ),
 

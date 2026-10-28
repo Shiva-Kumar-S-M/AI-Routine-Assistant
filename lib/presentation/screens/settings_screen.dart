@@ -121,16 +121,19 @@ class _SettingsScreenState extends State<SettingsScreen>
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
-          backgroundColor: const Color(0xFF181827),
+          backgroundColor: AppColors.surface,
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: const Text('Exported App Data (JSON)',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: AppColors.border, width: 1.0),
+              ),
+          title: const Text('EXPORTED APP DATA (JSON)',
+              style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 13, letterSpacing: 1.2)),
           content: SingleChildScrollView(
             child: SelectableText(
               exportJson,
               style: const TextStyle(
-                  color: Color(0xFF9E9EAF),
+                  color: AppColors.textSecondary,
                   fontSize: 12,
                   fontFamily: 'monospace'),
             ),
@@ -138,22 +141,11 @@ class _SettingsScreenState extends State<SettingsScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close', style: TextStyle(color: Color(0xFF7C4DFF))),
+              child: const Text('Close', style: TextStyle(color: AppColors.textPrimary)),
             ),
           ],
         ),
       );
-    }
-  }
-
-  Color _getCategoryColor(String cat) {
-    switch (cat) {
-      case 'productive':
-        return AppColors.productive;
-      case 'distracting':
-        return AppColors.distracting;
-      default:
-        return AppColors.neutral;
     }
   }
 
@@ -172,12 +164,14 @@ class _SettingsScreenState extends State<SettingsScreen>
   void _showAppActionSheet(AppCategory item) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF181827),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => Padding(
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
         padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          border: Border(top: BorderSide(color: AppColors.border, width: 1.0)),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,10 +179,10 @@ class _SettingsScreenState extends State<SettingsScreen>
             Center(
               child: Container(
                 width: 36,
-                height: 4,
+                height: 3,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF33334A),
-                  borderRadius: BorderRadius.circular(2),
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(1.5),
                 ),
               ),
             ),
@@ -196,18 +190,19 @@ class _SettingsScreenState extends State<SettingsScreen>
             Text(
               item.appName,
               style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
             ListTile(
-              leading: const Icon(Icons.category_outlined, color: Color(0xFF7C4DFF)),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.category_outlined, color: AppColors.textPrimary, size: 20),
               title: const Text('Change Category',
-                  style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                  style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.textPrimary, fontSize: 14)),
               subtitle: Text('Current: ${item.category.toUpperCase()}',
-                  style: const TextStyle(color: Color(0xFF8E8EA2))),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
               onTap: () {
                 Navigator.pop(context);
                 showDialog(
@@ -221,13 +216,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                 );
               },
             ),
-            const Divider(color: Color(0xFF2B2B44)),
+            const Divider(color: AppColors.border),
             ListTile(
-              leading: const Icon(Icons.timer_outlined, color: Color(0xFF00E676)),
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.timer_outlined, color: AppColors.textPrimary, size: 20),
               title: const Text('Set Daily Screen-Time Limit',
-                  style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                  style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.textPrimary, fontSize: 14)),
               subtitle: const Text('Configure daily maximum usage duration',
-                  style: TextStyle(color: Color(0xFF8E8EA2))),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
               onTap: () {
                 Navigator.pop(context);
                 showDialog(
@@ -249,29 +245,29 @@ class _SettingsScreenState extends State<SettingsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0E0E18),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
-          'Settings & Limits',
+          'SETTINGS & LIMITS',
           style: TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.3,
+            color: AppColors.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.2,
           ),
         ),
-        backgroundColor: const Color(0xFF0E0E18),
+        backgroundColor: AppColors.background,
         elevation: 0,
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFF7C4DFF),
-          indicatorWeight: 3,
-          labelColor: const Color(0xFF7C4DFF),
-          unselectedLabelColor: const Color(0xFF8E8EA2),
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          indicatorColor: AppColors.textPrimary,
+          indicatorWeight: 2,
+          labelColor: AppColors.textPrimary,
+          unselectedLabelColor: AppColors.textSecondary,
+          labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, letterSpacing: 0.8),
           tabs: const [
-            Tab(icon: Icon(Icons.apps_rounded), text: 'App Categories'),
-            Tab(icon: Icon(Icons.tune_rounded), text: 'Preferences'),
+            Tab(icon: Icon(Icons.apps_outlined, size: 18), text: 'APP CATEGORIES'),
+            Tab(icon: Icon(Icons.tune_outlined, size: 18), text: 'PREFERENCES'),
           ],
         ),
       ),
@@ -288,27 +284,27 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget _buildAppsTab() {
     return _isLoadingApps
         ? const Center(
-            child: CircularProgressIndicator(color: Color(0xFF7C4DFF)))
+            child: CircularProgressIndicator(color: AppColors.textPrimary))
         : Column(
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
                   onChanged: (val) => setState(() => _filterList(val)),
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: AppColors.textPrimary),
                   decoration: InputDecoration(
                     hintText: 'Search app or package name...',
-                    hintStyle: const TextStyle(color: Color(0xFF6E6E82)),
-                    prefixIcon: const Icon(Icons.search, color: Color(0xFF8E8EA2)),
+                    hintStyle: const TextStyle(color: AppColors.textSecondary),
+                    prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary, size: 20),
                     filled: true,
-                    fillColor: const Color(0xFF181827),
+                    fillColor: AppColors.surface,
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: const BorderSide(color: Color(0xFF2B2B44)),
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: AppColors.border),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.5),
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: AppColors.textPrimary, width: 1.0),
                     ),
                   ),
                 ),
@@ -317,12 +313,12 @@ class _SettingsScreenState extends State<SettingsScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: OutlinedButton.icon(
                   onPressed: _exportData,
-                  icon: const Icon(Icons.download_rounded, color: Color(0xFF7C4DFF)),
-                  label: const Text('Export Local Data (JSON)', style: TextStyle(color: Colors.white)),
+                  icon: const Icon(Icons.download_outlined, color: AppColors.textPrimary, size: 18),
+                  label: const Text('Export Local Data (JSON)', style: TextStyle(color: AppColors.textPrimary)),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(44),
-                    side: const BorderSide(color: Color(0xFF2B2B44)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    side: const BorderSide(color: AppColors.border),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
@@ -331,52 +327,55 @@ class _SettingsScreenState extends State<SettingsScreen>
                 child: _filteredCategories.isEmpty
                     ? const Center(
                         child: Text('No matching packages found',
-                            style: TextStyle(color: Color(0xFF8E8EA2))),
+                            style: TextStyle(color: AppColors.textSecondary)),
                       )
                     : ListView.builder(
                         itemCount: _filteredCategories.length,
                         itemBuilder: (context, index) {
                           final item = _filteredCategories[index];
-                          final color = _getCategoryColor(item.category);
                           return Container(
                             margin: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF181827),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFF2B2B44)),
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppColors.border),
                             ),
                             child: Material(
                               color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(14),
                               child: ListTile(
                                 title: Text(
                                   item.appName,
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.textPrimary,
                                     fontSize: 14,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                                 subtitle: Text(
                                   item.appName != item.packageName
-                                      ? '${item.packageName} · ${item.isCustom ? "Custom Override" : "Default"}'
+                                      ? '${item.packageName} · ${item.isCustom ? "Custom" : "Default"}'
                                       : (item.isCustom ? 'Custom Override' : 'Default Preset'),
                                   style: const TextStyle(
-                                    color: Color(0xFF8E8EA2),
+                                    color: AppColors.textSecondary,
                                     fontSize: 11,
                                   ),
                                 ),
-                                trailing: Chip(
-                                  backgroundColor:
-                                      color.withValues(alpha: 0.15),
-                                  side: BorderSide(color: color),
-                                  label: Text(
+                                trailing: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceRaised,
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: AppColors.border, width: 0.5),
+                                  ),
+                                  child: Text(
                                     item.category.toUpperCase(),
-                                    style: TextStyle(
-                                      color: color,
+                                    style: const TextStyle(
+                                      color: AppColors.textSecondary,
                                       fontSize: 10,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.8,
                                     ),
                                   ),
                                 ),
@@ -394,7 +393,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget _buildPreferencesTab() {
     if (_isLoadingPrefs) {
       return const Center(
-          child: CircularProgressIndicator(color: Color(0xFF7C4DFF)));
+          child: CircularProgressIndicator(color: AppColors.textPrimary));
     }
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -431,11 +430,11 @@ class _SettingsScreenState extends State<SettingsScreen>
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () => _collector.openNotificationChannelSettings(),
-                  icon: const Icon(Icons.tune_rounded, size: 16),
+                  icon: const Icon(Icons.tune_outlined, size: 16),
                   label: const Text('Configure or Hide from Status Bar'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF7C4DFF),
-                    side: const BorderSide(color: Color(0xFF4C3672)),
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.border),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
@@ -448,7 +447,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           child: Column(
             children: [
               _toggleRow(
-                icon: Icons.warning_amber_rounded,
+                icon: Icons.warning_amber_outlined,
                 label: 'Mute Distraction Alerts',
                 value: _muteDistraction,
                 onChanged: (v) async {
@@ -456,7 +455,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   setState(() => _muteDistraction = v);
                 },
               ),
-              const Divider(color: Color(0xFF26263A), height: 1),
+              const Divider(color: AppColors.border, height: 1),
               _toggleRow(
                 icon: Icons.psychology_outlined,
                 label: 'Mute Routine Reminders',
@@ -466,14 +465,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                   setState(() => _muteRoutine = v);
                 },
               ),
-              const Divider(color: Color(0xFF26263A), height: 1),
+              const Divider(color: AppColors.border, height: 1),
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
                     const Icon(Icons.trending_up,
-                        color: Color(0xFF8E8EA2), size: 20),
+                        color: AppColors.textSecondary, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -481,10 +480,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                         children: [
                           const Text('Max Alerts Per Day',
                               style: TextStyle(
-                                  color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                                  color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w500)),
                           Text('$_maxAlerts alerts per day',
                               style: const TextStyle(
-                                  color: Color(0xFF8E8EA2), fontSize: 12)),
+                                  color: AppColors.textSecondary, fontSize: 12)),
                         ],
                       ),
                     ),
@@ -495,7 +494,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                         min: 1,
                         max: 50,
                         divisions: 49,
-                        activeColor: const Color(0xFF7C4DFF),
+                        activeColor: AppColors.textPrimary,
+                        inactiveColor: AppColors.border,
                         onChanged: (v) =>
                             setState(() => _maxAlerts = v.toInt()),
                         onChangeEnd: (v) async {
@@ -506,14 +506,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ],
                 ),
               ),
-              const Divider(color: Color(0xFF26263A), height: 1),
+              const Divider(color: AppColors.border, height: 1),
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
                     const Icon(Icons.notifications_active_outlined,
-                        color: Color(0xFF00E5FF), size: 20),
+                        color: AppColors.textPrimary, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -521,10 +521,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                         children: [
                           const Text('Early Warning Threshold',
                               style: TextStyle(
-                                  color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                                  color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w500)),
                           Text('$_earlyWarningPct% of limit (nudge before overlay)',
                               style: const TextStyle(
-                                  color: Color(0xFF8E8EA2), fontSize: 12)),
+                                  color: AppColors.textSecondary, fontSize: 12)),
                         ],
                       ),
                     ),
@@ -535,7 +535,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                         min: 50,
                         max: 95,
                         divisions: 9,
-                        activeColor: const Color(0xFF00E5FF),
+                        activeColor: AppColors.textPrimary,
+                        inactiveColor: AppColors.border,
                         onChanged: (v) =>
                             setState(() => _earlyWarningPct = v.toInt()),
                         onChangeEnd: (v) async {
@@ -567,7 +568,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   (h) => _prefs.setQuietHoursStart(h),
                 ),
               ),
-              const Divider(color: Color(0xFF26263A), height: 1),
+              const Divider(color: AppColors.border, height: 1),
               _tapRow(
                 icon: Icons.wb_sunny_outlined,
                 label: 'End Hour',
@@ -587,7 +588,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             'No notifications sent between '
             '${_quietStart.toString().padLeft(2, '0')}:00 and '
             '${_quietEnd.toString().padLeft(2, '0')}:00',
-            style: const TextStyle(color: Color(0xFF8E8EA2), fontSize: 12),
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
           ),
         ),
 
@@ -597,7 +598,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         const SizedBox(height: 8),
         _prefCard(
           child: _toggleRow(
-            icon: Icons.bar_chart,
+            icon: Icons.bar_chart_outlined,
             label: 'Weekly Productivity Digest',
             subtitle: 'Receive scheduled summary notification once per week',
             value: _weeklySummary,
@@ -614,12 +615,12 @@ class _SettingsScreenState extends State<SettingsScreen>
         const SizedBox(height: 8),
         _prefCard(
           child: ListTile(
-            leading: const Icon(Icons.verified_user_outlined, color: Color(0xFF00E5FF)),
+            leading: const Icon(Icons.verified_user_outlined, color: AppColors.textPrimary),
             title: const Text('Network-Proof Privacy Verification',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
             subtitle: const Text('Live assertion: 0 network calls, internet permission not requested',
-                style: TextStyle(fontSize: 12, color: Color(0xFF8E8EA2))),
-            trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF6E6E84)),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.textSecondary),
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const NetworkProofScreen()),
@@ -638,7 +639,7 @@ class _SettingsScreenState extends State<SettingsScreen>
             child: Row(
               children: [
                 const Icon(Icons.delete_sweep_outlined,
-                    color: Color(0xFF8E8EA2), size: 20),
+                    color: AppColors.textSecondary, size: 20),
                 const SizedBox(width: 12),
                 const Expanded(
                   child: Column(
@@ -646,22 +647,22 @@ class _SettingsScreenState extends State<SettingsScreen>
                     children: [
                       Text('Keep raw logs for',
                           style: TextStyle(
-                              color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                              color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w500)),
                       Text(
                         'Older entries are pruned automatically',
                         style: TextStyle(
-                            color: Color(0xFF8E8EA2), fontSize: 12),
+                            color: AppColors.textSecondary, fontSize: 12),
                       ),
                     ],
                   ),
                 ),
                 DropdownButton<RetentionOption>(
                   value: _retentionOption,
-                  dropdownColor: const Color(0xFF1E1E32),
+                  dropdownColor: AppColors.surfaceRaised,
                   underline: const SizedBox(),
                   style: const TextStyle(
-                      color: Color(0xFF7C4DFF),
-                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
                       fontSize: 13),
                   items: RetentionOption.values
                       .map((o) => DropdownMenuItem(
@@ -688,14 +689,15 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget _sectionHeader(String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, color: const Color(0xFF7C4DFF), size: 18),
+        Icon(icon, color: AppColors.textSecondary, size: 18),
         const SizedBox(width: 8),
         Text(
-          title,
+          title.toUpperCase(),
           style: const TextStyle(
-            color: Colors.white,
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
+            color: AppColors.textSecondary,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.2,
           ),
         ),
       ],
@@ -705,13 +707,13 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget _prefCard({required Widget child}) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF181827),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF2B2B44)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 1.0),
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         child: child,
       ),
     );
@@ -725,15 +727,17 @@ class _SettingsScreenState extends State<SettingsScreen>
     required ValueChanged<bool> onChanged,
   }) {
     return SwitchListTile(
-      activeThumbColor: Colors.white,
-      activeTrackColor: const Color(0xFF7C4DFF),
-      secondary: Icon(icon, color: const Color(0xFF8E8EA2), size: 20),
+      activeThumbColor: Colors.black,
+      activeTrackColor: Colors.white,
+      inactiveThumbColor: AppColors.textSecondary,
+      inactiveTrackColor: AppColors.surfaceRaised,
+      secondary: Icon(icon, color: AppColors.textSecondary, size: 20),
       title: Text(label,
-          style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w500)),
       subtitle: subtitle != null
           ? Text(subtitle,
               style: const TextStyle(
-                  color: Color(0xFF8E8EA2), fontSize: 12))
+                  color: AppColors.textSecondary, fontSize: 12))
           : null,
       value: value,
       onChanged: onChanged,
@@ -747,18 +751,18 @@ class _SettingsScreenState extends State<SettingsScreen>
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFF8E8EA2), size: 20),
+      leading: Icon(icon, color: AppColors.textSecondary, size: 20),
       title: Text(label,
-          style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w500)),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(value,
               style: const TextStyle(
-                  color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
+                  color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
           const SizedBox(width: 6),
           const Icon(Icons.chevron_right,
-              color: Color(0xFF6E6E84), size: 18),
+              color: AppColors.textSecondary, size: 18),
         ],
       ),
       onTap: onTap,
@@ -788,16 +792,18 @@ class _HourPickerDialogState extends State<_HourPickerDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF181827),
+      backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: const BorderSide(color: Color(0xFF2B2B44)),
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.border, width: 1.0),
       ),
       title: Text(
-        widget.label,
+        widget.label.toUpperCase(),
         style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w600,
+          fontSize: 13,
+          letterSpacing: 1.2,
         ),
       ),
       content: SizedBox(
@@ -817,11 +823,11 @@ class _HourPickerDialogState extends State<_HourPickerDialog> {
                   '${index.toString().padLeft(2, '0')}:00',
                   style: TextStyle(
                     color: isSelected
-                        ? const Color(0xFF7C4DFF)
-                        : const Color(0xFF8E8EA2),
+                        ? AppColors.textPrimary
+                        : AppColors.textSecondary,
                     fontSize: isSelected ? 22 : 16,
                     fontWeight:
-                        isSelected ? FontWeight.w900 : FontWeight.normal,
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               );
@@ -834,12 +840,17 @@ class _HourPickerDialogState extends State<_HourPickerDialog> {
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel',
-              style: TextStyle(color: Color(0xFF8E8EA2))),
+              style: TextStyle(color: AppColors.textSecondary)),
         ),
-        TextButton(
+        ElevatedButton(
           onPressed: () => Navigator.pop(context, _selected),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.onPrimary,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
           child: const Text('Set',
-              style: TextStyle(color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
+              style: TextStyle(fontWeight: FontWeight.w600)),
         ),
       ],
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/constants/app_colors.dart';
 import 'dashboard_screen.dart';
 import 'journey_screen.dart';
 import 'insights_screen.dart';
@@ -36,7 +37,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       }
     });
 
-    // Check for pending launch route on cold start
     _platformChannel.invokeMethod<String>('getLaunchRoute').then((route) {
       if (route != null && mounted) {
         _navigateRoute(route);
@@ -70,50 +70,63 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0E0E18),
+      backgroundColor: AppColors.background,
       body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: Container(
+        height: 64,
         decoration: const BoxDecoration(
-          color: Color(0xFF141424),
+          color: AppColors.background,
           border: Border(
-            top: BorderSide(color: Color(0xFF26263C), width: 1.0),
+            top: BorderSide(color: AppColors.border, width: 1.0),
           ),
         ),
-        child: NavigationBar(
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: _onNavSelected,
-          backgroundColor: const Color(0xFF141424),
-          indicatorColor: const Color(0x337C4DFF),
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          height: 68,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined, color: Color(0xFF8E8EA2)),
-              selectedIcon: Icon(Icons.home_rounded, color: Color(0xFF7C4DFF)),
-              label: 'Home',
+        child: Row(
+          children: [
+            _navItem(0, Icons.home_outlined, 'Home'),
+            _navItem(1, Icons.extension_outlined, 'Brain Gym'),
+            _navItem(2, Icons.emoji_events_outlined, 'Journey'),
+            _navItem(3, Icons.insights_outlined, 'Insights'),
+            _navItem(4, Icons.settings_outlined, 'Settings'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(int index, IconData icon, String label) {
+    final isSelected = _selectedIndex == index;
+    return Expanded(
+      child: InkWell(
+        onTap: () => _onNavSelected(index),
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: Column(
+          children: [
+            // Thin top indicator line
+            Container(
+              height: 2,
+              width: 32,
+              color: isSelected ? AppColors.textPrimary : Colors.transparent,
             ),
-            NavigationDestination(
-              icon: Icon(Icons.bolt_outlined, color: Color(0xFF8E8EA2)),
-              selectedIcon: Icon(Icons.bolt_rounded, color: Color(0xFFFF9100)),
-              label: 'Brain Gym',
+            const Spacer(),
+            Icon(
+              icon,
+              size: 20,
+              color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
             ),
-            NavigationDestination(
-              icon: Icon(Icons.military_tech_outlined, color: Color(0xFF8E8EA2)),
-              selectedIcon: Icon(Icons.military_tech_rounded, color: Color(0xFFFFD700)),
-              label: 'Journey',
+            const SizedBox(height: 4),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+                letterSpacing: 0.2,
+              ),
             ),
-            NavigationDestination(
-              icon: Icon(Icons.psychology_outlined, color: Color(0xFF8E8EA2)),
-              selectedIcon: Icon(Icons.psychology_rounded, color: Color(0xFF00E5FF)),
-              label: 'Insights',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined, color: Color(0xFF8E8EA2)),
-              selectedIcon: Icon(Icons.settings_rounded, color: Colors.white),
-              label: 'Settings',
-            ),
+            const SizedBox(height: 8),
           ],
         ),
       ),

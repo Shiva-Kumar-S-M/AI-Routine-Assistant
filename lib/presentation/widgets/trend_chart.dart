@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import '../../core/constants/app_colors.dart';
 
 typedef DayTapCallback = void Function(DateTime day);
 
@@ -60,9 +61,9 @@ class _TrendChartState extends State<TrendChart> {
             gridData: FlGridData(
               show: true,
               getDrawingHorizontalLine: (_) =>
-                  const FlLine(color: Color(0xFF26263A), strokeWidth: 1),
+                  const FlLine(color: AppColors.border, strokeWidth: 1),
               getDrawingVerticalLine: (_) =>
-                  const FlLine(color: Color(0xFF26263A), strokeWidth: 1),
+                  const FlLine(color: AppColors.border, strokeWidth: 1),
             ),
             titlesData: FlTitlesData(
               rightTitles:
@@ -83,11 +84,11 @@ class _TrendChartState extends State<TrendChart> {
                           DateFormat('E').format(entries[index].key),
                           style: TextStyle(
                             color: isHighlighted
-                                ? const Color(0xFF00E5FF)
-                                : const Color(0xFF8E8EA2),
+                                ? AppColors.textPrimary
+                                : AppColors.textSecondary,
                             fontSize: 11,
                             fontWeight: isHighlighted
-                                ? FontWeight.bold
+                                ? FontWeight.w600
                                 : FontWeight.normal,
                           ),
                         ),
@@ -104,7 +105,7 @@ class _TrendChartState extends State<TrendChart> {
                   getTitlesWidget: (value, meta) => Text(
                     '${value.toInt()}h',
                     style: const TextStyle(
-                      color: Color(0xFF8E8EA2),
+                      color: AppColors.textSecondary,
                       fontSize: 11,
                     ),
                   ),
@@ -131,9 +132,9 @@ class _TrendChartState extends State<TrendChart> {
                     return LineTooltipItem(
                       '${DateFormat('EEE').format(entries[idx].key)}\n${h}h',
                       const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                       ),
                     );
                   }
@@ -146,10 +147,8 @@ class _TrendChartState extends State<TrendChart> {
               LineChartBarData(
                 spots: spots,
                 isCurved: true,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF7C4DFF), Color(0xFF00E5FF)],
-                ),
-                barWidth: 3.5,
+                color: AppColors.textPrimary,
+                barWidth: 2.0,
                 dotData: FlDotData(
                   show: true,
                   getDotPainter: (spot, percent, barData, index) {
@@ -158,12 +157,12 @@ class _TrendChartState extends State<TrendChart> {
                             index < entries.length &&
                             _sameDay(entries[index].key, _activeDay!));
                     return FlDotCirclePainter(
-                      radius: isHighlighted ? 7 : 4,
+                      radius: isHighlighted ? 5 : 3,
                       color: isHighlighted
-                          ? const Color(0xFF00E5FF)
-                          : const Color(0xFF7C4DFF),
-                      strokeWidth: isHighlighted ? 3 : 0,
-                      strokeColor: Colors.white,
+                          ? AppColors.textPrimary
+                          : AppColors.surfaceRaised,
+                      strokeWidth: isHighlighted ? 2 : 1,
+                      strokeColor: AppColors.textPrimary,
                     );
                   },
                 ),
@@ -171,8 +170,8 @@ class _TrendChartState extends State<TrendChart> {
                   show: true,
                   gradient: LinearGradient(
                     colors: [
-                      const Color(0xFF7C4DFF).withValues(alpha: 0.3),
-                      const Color(0xFF00E5FF).withValues(alpha: 0.0),
+                      AppColors.textPrimary.withValues(alpha: 0.08),
+                      AppColors.textPrimary.withValues(alpha: 0.0),
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,

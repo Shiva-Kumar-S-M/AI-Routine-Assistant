@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/constants/app_colors.dart';
 
 class LevelUpDialog extends StatefulWidget {
   final int newLevel;
@@ -35,11 +36,11 @@ class _LevelUpDialogState extends State<LevelUpDialog>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 700),
     );
     _scaleAnimation = CurvedAnimation(
       parent: _controller,
-      curve: Curves.elasticOut,
+      curve: Curves.easeOutCubic,
     );
     _controller.forward();
   }
@@ -59,13 +60,13 @@ class _LevelUpDialogState extends State<LevelUpDialog>
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Background Canvas Confetti Particles
+          // Background Canvas Sparkle Particles (Silver & White)
           Positioned.fill(
             child: AnimatedBuilder(
               animation: _controller,
               builder: (context, _) {
                 return CustomPaint(
-                  painter: _ConfettiPainter(progress: _controller.value),
+                  painter: _MonochromeSparklePainter(progress: _controller.value),
                 );
               },
             ),
@@ -77,58 +78,42 @@ class _LevelUpDialogState extends State<LevelUpDialog>
             child: Container(
               padding: const EdgeInsets.all(28),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF3D5AFE).withValues(alpha: 0.25),
-                    blurRadius: 32,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border, width: 1.0),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Crown Badge
+                  // Level Badge
                   Container(
-                    width: 88,
-                    height: 88,
+                    width: 72,
+                    height: 72,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFFFD700), Color(0xFFFF9100)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: AppColors.surfaceRaised,
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFFF9100).withValues(alpha: 0.4),
-                          blurRadius: 20,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
+                      border: Border.all(color: AppColors.border, width: 1.0),
                     ),
                     child: Center(
                       child: Text(
-                        'Lv ${widget.newLevel}',
+                        '${widget.newLevel}',
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 22,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w300,
+                          fontSize: 32,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 18),
 
                   const Text(
-                    'LEVEL UP!',
+                    'LEVEL UP',
                     style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2.0,
-                      color: Color(0xFF3D5AFE),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.6,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -136,9 +121,9 @@ class _LevelUpDialogState extends State<LevelUpDialog>
                     widget.title,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF202124),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -146,31 +131,31 @@ class _LevelUpDialogState extends State<LevelUpDialog>
                     'Your discipline is compounding. Every resisted distraction reclaims focus and energy for what matters.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF5F6368),
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
                       height: 1.4,
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 24),
 
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3D5AFE),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.onPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         elevation: 0,
                       ),
                       child: const Text(
-                        'Claim & Keep Growing',
+                        'Continue',
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -185,28 +170,26 @@ class _LevelUpDialogState extends State<LevelUpDialog>
   }
 }
 
-class _ConfettiPainter extends CustomPainter {
+class _MonochromeSparklePainter extends CustomPainter {
   final double progress;
-  final List<_Particle> particles = [];
+  final List<_SparkleParticle> particles = [];
 
-  _ConfettiPainter({required this.progress}) {
+  _MonochromeSparklePainter({required this.progress}) {
     final random = Random(42);
     const colors = [
-      Color(0xFF3D5AFE),
-      Color(0xFFFF9100),
-      Color(0xFF00C853),
-      Color(0xFFFF4081),
-      Color(0xFF00E5FF),
-      Color(0xFFFFD700),
+      Color(0xFFFFFFFF),
+      Color(0xFFE5E5EA),
+      Color(0xFFD1D1D6),
+      Color(0xFF8E8E93),
     ];
-    for (int i = 0; i < 40; i++) {
+    for (int i = 0; i < 36; i++) {
       final angle = random.nextDouble() * 2 * pi;
-      final distance = random.nextDouble() * 160 + 60;
-      particles.add(_Particle(
+      final distance = random.nextDouble() * 150 + 50;
+      particles.add(_SparkleParticle(
         color: colors[i % colors.length],
         dx: cos(angle) * distance,
         dy: sin(angle) * distance,
-        size: random.nextDouble() * 6 + 4,
+        size: random.nextDouble() * 4 + 2,
       ));
     }
   }
@@ -227,20 +210,19 @@ class _ConfettiPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_ConfettiPainter oldDelegate) => true;
+  bool shouldRepaint(_MonochromeSparklePainter oldDelegate) => true;
 }
 
-class _Particle {
+class _SparkleParticle {
   final Color color;
   final double dx;
   final double dy;
   final double size;
 
-  _Particle({
+  _SparkleParticle({
     required this.color,
     required this.dx,
     required this.dy,
     required this.size,
   });
 }
-

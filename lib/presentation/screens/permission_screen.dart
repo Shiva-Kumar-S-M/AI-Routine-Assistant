@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_colors.dart';
 import '../../services/usage_collector_service.dart';
 import '../../services/notification_service.dart';
 import '../widgets/chunky_button.dart';
@@ -14,10 +15,11 @@ class PermissionScreen extends StatefulWidget {
 class _PermissionScreenState extends State<PermissionScreen>
     with WidgetsBindingObserver {
   final UsageCollectorService _collectorService = UsageCollectorService();
-  bool _isChecking = false;
+
   bool _hasUsage = false;
   bool _hasOverlay = false;
   bool _hasBatteryExemption = false;
+  bool _isChecking = false;
 
   @override
   void initState() {
@@ -53,26 +55,21 @@ class _PermissionScreenState extends State<PermissionScreen>
         _isChecking = false;
       });
     }
-
-    if (hasUsage && hasOverlay) {
-      await _collectorService.startUsageMonitorService();
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-      );
-    }
   }
 
   Future<void> _grantUsagePermission() async {
     await _collectorService.openUsageSettings();
+    _checkPermissions();
   }
 
   Future<void> _grantOverlayPermission() async {
     await _collectorService.openOverlaySettings();
+    _checkPermissions();
   }
 
   Future<void> _grantBatteryExemption() async {
     await _collectorService.requestBatteryOptimization();
+    _checkPermissions();
   }
 
   Future<void> _grantNotificationPermission() async {
@@ -95,49 +92,39 @@ class _PermissionScreenState extends State<PermissionScreen>
     final allRequiredGranted = _hasUsage && _hasOverlay;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0E0E18),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(
                 child: Container(
-                  width: 84,
-                  height: 84,
+                  width: 72,
+                  height: 72,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF7C4DFF), Color(0xFF651FFF)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: AppColors.surface,
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF7C4DFF).withValues(alpha: 0.35),
-                        blurRadius: 28,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
+                    border: Border.all(color: AppColors.border, width: 1.0),
                   ),
                   child: const Icon(
-                    Icons.security_rounded,
-                    size: 44,
-                    color: Colors.white,
+                    Icons.shield_outlined,
+                    size: 32,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
 
               const Text(
-                'Permission Setup',
+                'PERMISSION SETUP',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                  letterSpacing: 1.6,
                 ),
               ),
               const SizedBox(height: 8),
@@ -147,7 +134,7 @@ class _PermissionScreenState extends State<PermissionScreen>
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
-                  color: Color(0xFF8E8EA2),
+                  color: AppColors.textSecondary,
                   height: 1.4,
                 ),
               ),
@@ -158,9 +145,9 @@ class _PermissionScreenState extends State<PermissionScreen>
                 'REQUIRED PERMISSIONS',
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w600,
                   letterSpacing: 1.2,
-                  color: Color(0xFF7C4DFF),
+                  color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 10),
@@ -170,7 +157,7 @@ class _PermissionScreenState extends State<PermissionScreen>
                 title: 'Usage Access',
                 subtitle: 'Detects active screen time across apps',
                 isGranted: _hasUsage,
-                icon: Icons.bar_chart_rounded,
+                icon: Icons.bar_chart_outlined,
                 onTap: _grantUsagePermission,
               ),
               const SizedBox(height: 10),
@@ -180,7 +167,7 @@ class _PermissionScreenState extends State<PermissionScreen>
                 title: 'Display Over Other Apps',
                 subtitle: 'Shows the full-screen psychological nudge overlay',
                 isGranted: _hasOverlay,
-                icon: Icons.layers_rounded,
+                icon: Icons.layers_outlined,
                 onTap: _grantOverlayPermission,
               ),
               const SizedBox(height: 24),
@@ -190,9 +177,9 @@ class _PermissionScreenState extends State<PermissionScreen>
                 'BACKGROUND RELIABILITY',
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w600,
                   letterSpacing: 1.2,
-                  color: Color(0xFF8E8EA2),
+                  color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 10),
@@ -202,7 +189,7 @@ class _PermissionScreenState extends State<PermissionScreen>
                 title: 'Battery Whitelist',
                 subtitle: 'Prevents Android from killing real-time monitor',
                 isGranted: _hasBatteryExemption,
-                icon: Icons.battery_charging_full_rounded,
+                icon: Icons.battery_charging_full_outlined,
                 onTap: _grantBatteryExemption,
               ),
               const SizedBox(height: 10),
@@ -212,7 +199,7 @@ class _PermissionScreenState extends State<PermissionScreen>
                 title: 'Notifications Access',
                 subtitle: 'Required for routine service indicator & summaries',
                 isGranted: true,
-                icon: Icons.notifications_active_rounded,
+                icon: Icons.notifications_none_outlined,
                 onTap: _grantNotificationPermission,
               ),
               const SizedBox(height: 32),
@@ -220,11 +207,10 @@ class _PermissionScreenState extends State<PermissionScreen>
               // Continue Button
               ChunkyButton(
                 text: allRequiredGranted ? 'Enter Assistant' : 'Grant Required Permissions',
-                icon: allRequiredGranted ? Icons.arrow_forward_rounded : Icons.lock_open_rounded,
-                height: 56,
-                borderRadius: 20,
-                color: allRequiredGranted ? const Color(0xFF7C4DFF) : const Color(0xFF26263A),
-                textColor: allRequiredGranted ? Colors.white : const Color(0xFF6E6E84),
+                icon: allRequiredGranted ? Icons.arrow_forward : Icons.lock_outline,
+                height: 52,
+                borderRadius: 14,
+                isSecondary: !allRequiredGranted,
                 onPressed: allRequiredGranted ? _proceedToApp : null,
               ),
 
@@ -233,11 +219,11 @@ class _PermissionScreenState extends State<PermissionScreen>
                   padding: EdgeInsets.only(top: 16),
                   child: Center(
                     child: SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: 18,
+                      height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFF7C4DFF),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -258,29 +244,30 @@ class _PermissionScreenState extends State<PermissionScreen>
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF181827),
-          borderRadius: BorderRadius.circular(20),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isGranted ? const Color(0xFF00E676).withValues(alpha: 0.5) : const Color(0xFF2B2B44),
-            width: isGranted ? 1.5 : 1,
+            color: isGranted ? AppColors.textPrimary : AppColors.border,
+            width: 1.0,
           ),
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isGranted ? const Color(0xFF00E676).withValues(alpha: 0.15) : const Color(0xFF222234),
-                shape: BoxShape.circle,
+                color: AppColors.surfaceRaised,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.border, width: 0.5),
               ),
               child: Icon(
                 icon,
-                size: 22,
-                color: isGranted ? const Color(0xFF00E676) : const Color(0xFF8E8EA2),
+                size: 20,
+                color: isGranted ? AppColors.textPrimary : AppColors.textSecondary,
               ),
             ),
             const SizedBox(width: 14),
@@ -291,9 +278,9 @@ class _PermissionScreenState extends State<PermissionScreen>
                   Text(
                     title,
                     style: const TextStyle(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w500,
                       fontSize: 14,
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -301,7 +288,7 @@ class _PermissionScreenState extends State<PermissionScreen>
                     subtitle,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF8E8EA2),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -309,18 +296,18 @@ class _PermissionScreenState extends State<PermissionScreen>
             ),
             const SizedBox(width: 10),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: isGranted ? const Color(0xFF00E676).withValues(alpha: 0.15) : const Color(0xFF7C4DFF),
-                borderRadius: BorderRadius.circular(16),
-                border: isGranted ? Border.all(color: const Color(0xFF00E676).withValues(alpha: 0.5)) : null,
+                color: isGranted ? AppColors.surfaceRaised : AppColors.primary,
+                borderRadius: BorderRadius.circular(8),
+                border: isGranted ? Border.all(color: AppColors.border, width: 0.5) : null,
               ),
               child: Text(
                 isGranted ? 'Granted' : 'Grant',
                 style: TextStyle(
-                  color: isGranted ? const Color(0xFF00E676) : Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  color: isGranted ? AppColors.textSecondary : AppColors.onPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
                 ),
               ),
             ),
