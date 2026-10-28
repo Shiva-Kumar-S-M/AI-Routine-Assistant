@@ -129,9 +129,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning, Focus Master ☀️';
-    if (hour < 17) return 'Good Afternoon, Attention Hero ⚡';
-    return 'Good Evening, Discipline Warrior 🌙';
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
   }
 
   void _showDailyGoalDialog() {
@@ -402,60 +402,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ── Stage 4 Components ─────────────────────────────────────────────────────
 
   Widget _buildGreetingAndStreakHeader() {
-    final streak = _userProgress?.dailyStreak ?? _streakDays;
-    final freezes = _userProgress?.streakFreezesAvailable ?? 0;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _getGreeting(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              const SizedBox(height: 3),
-              const Text(
-                'AI Routine Assistant • 100% On-Device',
-                style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 12),
-              ),
-            ],
+        Text(
+          _getGreeting(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.3,
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF381518), Color(0xFF281119)],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFFF5722).withValues(alpha: 0.5)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFF5722), size: 20),
-              const SizedBox(width: 4),
-              Text(
-                '${streak}d',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              if (freezes > 0) ...[
-                const SizedBox(width: 6),
-                const Icon(Icons.shield_rounded, color: Color(0xFF00E5FF), size: 14),
-              ],
-            ],
-          ),
+        const SizedBox(height: 3),
+        const Text(
+          'AI Routine Assistant • 100% On-Device',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 12),
         ),
       ],
     );
@@ -503,31 +469,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(
+                        'Level ${p.level} • ${p.levelTitle}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Level ${p.level} • ${p.levelTitle}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
+                          Flexible(
+                            child: Text(
+                              '${p.currentLevelXp} / ${p.xpNeededForNextLevel} XP to Level ${p.level + 1}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Color(0xFF9E9EAF), fontSize: 11),
                             ),
                           ),
+                          const SizedBox(width: 8),
                           Text(
                             '${p.xp} Total XP',
                             style: const TextStyle(
                               color: Color(0xFFFFD700),
                               fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                              fontSize: 11,
                             ),
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        '${p.currentLevelXp} / ${p.xpNeededForNextLevel} XP to Level ${p.level + 1}',
-                        style: const TextStyle(color: Color(0xFF9E9EAF), fontSize: 11),
                       ),
                     ],
                   ),
@@ -1202,12 +1175,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Icon(icon, size: 14, color: color),
               const SizedBox(width: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: color,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
                 ),
               ),
             ],
@@ -1215,6 +1192,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 4),
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w900,

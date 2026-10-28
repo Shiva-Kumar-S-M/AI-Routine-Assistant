@@ -111,6 +111,8 @@ class DailyGoalRing extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
@@ -120,6 +122,8 @@ class DailyGoalRing extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     '${(progressPercent * 100).toInt()}% towards target • Tap to configure',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 11,
                       color: isDark ? const Color(0xFF8E8EA2) : const Color(0xFF5F6368),

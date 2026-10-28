@@ -302,13 +302,23 @@ class _JourneyScreenState extends State<JourneyScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '${(_progress!.levelProgress * 100).toInt()}% towards next tier',
-                style: const TextStyle(fontSize: 11, color: Color(0xFF8E8EA2)),
+              Flexible(
+                child: Text(
+                  '${(_progress!.levelProgress * 100).toInt()}% towards next tier',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF8E8EA2)),
+                ),
               ),
-              Text(
-                '${_progress!.xpRemainingToNext} XP to Level ${_progress!.level + 1}',
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF9E9EAF)),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  '${_progress!.xpRemainingToNext} XP to Lvl ${_progress!.level + 1}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF9E9EAF)),
+                ),
               ),
             ],
           ),

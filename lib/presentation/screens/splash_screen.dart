@@ -155,12 +155,16 @@ class _SplashScreenState extends State<SplashScreen>
                             color: Color(0xFF00E676),
                           ),
                           SizedBox(width: 6),
-                          Text(
-                            '100% On-Device · Privacy First',
-                            style: TextStyle(
-                              color: Color(0xFF00E676),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                          Flexible(
+                            child: Text(
+                              '100% On-Device · Privacy First',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Color(0xFF00E676),
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
