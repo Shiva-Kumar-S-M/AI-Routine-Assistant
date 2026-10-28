@@ -21,6 +21,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -56,9 +57,76 @@ class UsageMonitorService : Service() {
     private val shownForSession = mutableSetOf<String>()
 
     companion object {
+        const val TAG_DECISION = "OverlayDecision"
+        private const val DEBOUNCE_MS = 3000L
+
         @Volatile
         var isServiceRunning = false
             private set
+
+        @Volatile
+        var debounceUntilMs = 0L
+            private set
+
+        // Packages that have bypassed the overlay during their CURRENT foreground session only
+        val activeSessionBypasses = ConcurrentHashMap.newKeySet<String>()
+
+        fun setDebounce(now: Long) {
+            debounceUntilMs = now + DEBOUNCE_MS
+            Log.d(TAG_DECISION, "Flicker debounce set for 3s (until $debounceUntilMs)")
+        }
+
+        fun markSessionBypassed(pkg: String) {
+            activeSessionBypasses.add(pkg)
+            Log.d(TAG_DECISION, "[$pkg] marked as bypassed for current session")
+        }
+
+        fun clearSessionBypass(pkg: String) {
+            if (activeSessionBypasses.remove(pkg)) {
+                Log.d(TAG_DECISION, "[$pkg] session bypass cleared")
+            }
+        }
+
+        fun resetAllBypasses() {
+            activeSessionBypasses.clear()
+            debounceUntilMs = 0L
+        }
+
+        /**
+         * Isolated unit-testable decision function.
+         * Evaluates whether the overlay should be shown for a package.
+         */
+        fun shouldShowOverlay(
+            pkg: String,
+            isOverLimit: Boolean,
+            lastForegroundPkg: String?,
+            now: Long
+        ): Boolean {
+            if (!isOverLimit) {
+                Log.d(TAG_DECISION, "[$pkg] shouldShowOverlay: FALSE (isOverLimit=false)")
+                return false
+            }
+
+            if (now < debounceUntilMs) {
+                Log.d(TAG_DECISION, "[$pkg] shouldShowOverlay: FALSE (debounce active, ${debounceUntilMs - now}ms left)")
+                return false
+            }
+
+            val isNewAppOpen = (pkg != lastForegroundPkg)
+            if (isNewAppOpen) {
+                clearSessionBypass(pkg)
+                Log.d(TAG_DECISION, "[$pkg] shouldShowOverlay: TRUE (new app-open from '${lastForegroundPkg ?: "OUTSIDE"}')")
+                return true
+            }
+
+            if (activeSessionBypasses.contains(pkg)) {
+                Log.d(TAG_DECISION, "[$pkg] shouldShowOverlay: FALSE (active in-session bypass)")
+                return false
+            }
+
+            Log.d(TAG_DECISION, "[$pkg] shouldShowOverlay: FALSE (already shown/handling in current session)")
+            return false
+        }
 
         private val packageSnoozeUntil = ConcurrentHashMap<String, Long>()
 
@@ -70,7 +138,6 @@ class UsageMonitorService : Service() {
         private const val SERVICE_NOTIFICATION_ID = 991
         private const val NOTIFICATION_CHANNEL_ID = "monitoring_channel"
         private const val FOCUS_NUDGES_CHANNEL_ID = "focus_nudges_channel"
-        private const val SNOOZE_DURATION_MS = 15 * 60 * 1000L // 15 minutes
 
         private val HOOK_TEMPLATES = listOf(
             "loss" to "You've already spent %s on %s today. That's %s of focused energy you won't get back.",
@@ -194,56 +261,101 @@ class UsageMonitorService : Service() {
         try {
             val usm = getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager ?: return
             val now = System.currentTimeMillis()
-            val events = usm.queryEvents(now - 5000, now)
+            // 10-second sliding query window to capture active state transitions
+            val events = usm.queryEvents(now - 10000, now)
 
-            var latestPkg: String? = null
-            var latestTs = 0L
+            var latestFgPkg: String? = null
+            var latestFgTs = 0L
+            var latestBgPkg: String? = null
+            var latestBgTs = 0L
+
             val event = UsageEvents.Event()
-
             while (events.hasNextEvent()) {
                 events.getNextEvent(event)
-                if (event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND && event.timeStamp > latestTs) {
-                    latestTs = event.timeStamp
-                    latestPkg = event.packageName
+                when (event.eventType) {
+                    UsageEvents.Event.MOVE_TO_FOREGROUND -> {
+                        if (event.timeStamp >= latestFgTs) {
+                            latestFgTs = event.timeStamp
+                            latestFgPkg = event.packageName
+                        }
+                    }
+                    UsageEvents.Event.MOVE_TO_BACKGROUND -> {
+                        if (event.timeStamp >= latestBgTs) {
+                            latestBgTs = event.timeStamp
+                            latestBgPkg = event.packageName
+                        }
+                    }
                 }
             }
 
-            if (latestPkg != null) {
-                // If user switched away from the app being overlaid, dismiss the overlay and reset session guard
-                if (overlayTargetPackage != null && latestPkg != overlayTargetPackage) {
-                    val prevPkg = overlayTargetPackage
-                    hideOverlay()
-                    if (prevPkg != null) {
-                        shownForSession.remove(prevPkg)
-                    }
-                }
+            // Determine if the current app is in foreground or was backgrounded
+            val currentFg: String? = if (latestFgTs > latestBgTs) {
+                latestFgPkg
+            } else if (latestBgTs > latestFgTs && latestBgPkg == lastForegroundPackage) {
+                // The previous foreground app was backgrounded and no new foreground app was posted (e.g. Home, Recents, Screen Off)
+                null
+            } else {
+                latestFgPkg
+            }
 
-                if (latestPkg != lastForegroundPackage) {
-                    val prev = lastForegroundPackage
-                    lastForegroundPackage = latestPkg
-                    if (prev != null && prev != latestPkg) {
-                        shownForSession.remove(prev)
-                    }
-                    onAppForegrounded(latestPkg)
+            // 1. If user switched away from the app being overlaid, dismiss overlay immediately and reset guards
+            if (overlayTargetPackage != null && currentFg != overlayTargetPackage) {
+                val dismissedPkg = overlayTargetPackage
+                Log.d(TAG_DECISION, "User navigated away from overlaid app '$dismissedPkg' to '${currentFg ?: "HOME/RECENTS"}' -> hiding overlay and resetting guards")
+                hideOverlay()
+                if (dismissedPkg != null) {
+                    shownForSession.remove(dismissedPkg)
+                    clearSessionBypass(dismissedPkg)
                 }
             }
-        } catch (_: Exception) {
-            // Permission not granted or query failed — silently skip
+
+            // 2. State transition handling
+            if (currentFg != lastForegroundPackage) {
+                val prev = lastForegroundPackage
+                lastForegroundPackage = currentFg
+                Log.d(TAG_DECISION, "Foreground app transition: '${prev ?: "NONE"}' -> '${currentFg ?: "HOME/RECENTS"}'")
+
+                if (prev != null) {
+                    shownForSession.remove(prev)
+                    clearSessionBypass(prev)
+                    Log.d(TAG_DECISION, "Guards and in-session bypass reset for exited package: $prev")
+                }
+
+                if (currentFg != null) {
+                    onAppForegrounded(currentFg, prev)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG_DECISION, "Error querying foreground events: ${e.message}", e)
         }
     }
 
-    private fun onAppForegrounded(pkg: String) {
+    private fun onAppForegrounded(pkg: String, previousPkg: String?) {
+        Log.d(TAG_DECISION, "onAppForegrounded called for: $pkg (from '${previousPkg ?: "NONE"}')")
+
         // Skip our own app, system launchers, and packages without launch intent
-        if (pkg == packageName) return
-        if (pkg in UsageStatsHelper.EXCLUDED_PACKAGES) return
+        if (pkg == packageName) {
+            Log.d(TAG_DECISION, "Skipping: our own package ($pkg)")
+            return
+        }
+        if (pkg in UsageStatsHelper.EXCLUDED_PACKAGES) {
+            Log.d(TAG_DECISION, "Skipping: excluded package / system launcher ($pkg)")
+            return
+        }
         try {
-            if (packageManager.getLaunchIntentForPackage(pkg) == null) return
+            if (packageManager.getLaunchIntentForPackage(pkg) == null) {
+                Log.d(TAG_DECISION, "Skipping: no launch intent for package ($pkg)")
+                return
+            }
         } catch (_: Exception) { return }
 
         var db: SQLiteDatabase? = null
         try {
             val dbFile = getDatabasePath("ai_routine_assistant.db")
-            if (!dbFile.exists()) return
+            if (!dbFile.exists()) {
+                Log.w(TAG_DECISION, "Database file not found")
+                return
+            }
             db = SQLiteDatabase.openDatabase(dbFile.absolutePath, null, SQLiteDatabase.OPEN_READWRITE)
 
             // 1. Check category: must be "distracting"
@@ -253,7 +365,10 @@ class UsageMonitorService : Service() {
                 arrayOf(pkg)
             ) ?: "neutral"
 
-            if (category != "distracting") return
+            if (category != "distracting") {
+                Log.d(TAG_DECISION, "App $pkg category is '$category' (not distracting) -> no overlay")
+                return
+            }
 
             // 2. Resolve configured limit
             var limitMins = queryString(
@@ -269,28 +384,34 @@ class UsageMonitorService : Service() {
                     arrayOf("limit_cat_distracting")
                 )?.toIntOrNull() ?: 120
             }
-            if (limitMins <= 0) return
+            if (limitMins <= 0) {
+                Log.d(TAG_DECISION, "App $pkg limit is <= 0 ($limitMins mins) -> no limit configured")
+                return
+            }
 
             // 3. Real-time usage calculation using event-pairing helper
             val usedSeconds = UsageStatsHelper.getTodayUsageSecondsForPackage(this, pkg)
             val usedMins = usedSeconds / 60
+            val isOverLimit = (usedMins >= limitMins)
+            val now = System.currentTimeMillis()
 
-            if (usedMins >= limitMins) {
-                // 4. Guards: check session guard and 15-minute snooze
-                if (shownForSession.contains(pkg)) return
+            Log.d(TAG_DECISION, "Evaluating $pkg: used=${usedMins}m, limit=${limitMins}m, isOverLimit=$isOverLimit")
 
-                val snoozeUntil = packageSnoozeUntil[pkg] ?: 0L
-                if (System.currentTimeMillis() < snoozeUntil) return
+            val shouldShow = shouldShowOverlay(pkg, isOverLimit, previousPkg, now)
 
-                val streak = calculateProductivityStreak(db)
-                val appName = UsageStatsHelper.getAppLabel(this, pkg)
-                val hookPair = selectBestHook(db, pkg, usedMins, streak)
-
+            if (shouldShow) {
                 if (hasOverlayPermission()) {
                     shownForSession.add(pkg)
+                    val streak = calculateProductivityStreak(db)
+                    val appName = UsageStatsHelper.getAppLabel(this, pkg)
+                    val hookPair = selectBestHook(db, pkg, usedMins, streak)
+
+                    Log.d(TAG_DECISION, "Triggering fullscreen overlay for $pkg (over by ${usedMins - limitMins}m)")
                     showFullScreenOverlay(pkg, appName, usedMins, limitMins, streak, hookPair)
+                } else {
+                    Log.w(TAG_DECISION, "Overlay permission not granted -> cannot show overlay for $pkg")
                 }
-            } else {
+            } else if (!isOverLimit) {
                 // Check early warning threshold (default 80%)
                 val thresholdPct = queryString(
                     db,
@@ -305,8 +426,8 @@ class UsageMonitorService : Service() {
                     checkAndSendEarlyWarningNotification(db, pkg, appName, usedMins, limitMins)
                 }
             }
-        } catch (_: Exception) {
-            // DB or usage error — skip
+        } catch (e: Exception) {
+            Log.e(TAG_DECISION, "Error evaluating app limit for $pkg: ${e.message}", e)
         } finally {
             try { db?.close() } catch (_: Exception) {}
         }
@@ -465,8 +586,12 @@ class UsageMonitorService : Service() {
                     setMargins(0, 0, 0, dpToPx(10))
                 }
                 setOnClickListener {
+                    Log.d(TAG_DECISION, "User tapped 'Take me back' on $pkg")
                     logIntervention(pkg, "turn_back", usedMins, limitMins, hookType)
                     hideOverlay()
+                    shownForSession.remove(pkg)
+                    clearSessionBypass(pkg)
+                    lastForegroundPackage = null
                     // Navigate to Home Screen
                     val homeIntent = Intent(Intent.ACTION_MAIN).apply {
                         addCategory(Intent.CATEGORY_HOME)
@@ -494,8 +619,12 @@ class UsageMonitorService : Service() {
                     setMargins(0, 0, 0, dpToPx(10))
                 }
                 setOnClickListener {
+                    Log.d(TAG_DECISION, "User tapped 'Brain challenge instead' on $pkg")
                     logIntervention(pkg, "brain_challenge", usedMins, limitMins, hookType)
                     hideOverlay()
+                    shownForSession.remove(pkg)
+                    clearSessionBypass(pkg)
+                    lastForegroundPackage = null
                     val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
                     if (launchIntent != null) {
                         launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -523,7 +652,9 @@ class UsageMonitorService : Service() {
                     dpToPx(44)
                 )
                 setOnClickListener {
-                    packageSnoozeUntil[pkg] = System.currentTimeMillis() + SNOOZE_DURATION_MS
+                    Log.d(TAG_DECISION, "User tapped 'Continue anyway' (in-session bypass) on $pkg")
+                    markSessionBypassed(pkg)
+                    setDebounce(System.currentTimeMillis())
                     logIntervention(pkg, "bypass", usedMins, limitMins, hookType)
                     hideOverlay()
                 }
@@ -552,14 +683,17 @@ class UsageMonitorService : Service() {
             card.addView(buttonContainer)
             root.addView(card)
             root.alpha = 0f
-            overlayView = root
 
             try {
-                wm.addView(overlayView, params)
+                wm.addView(root, params)
+                overlayView = root
                 root.animate().alpha(1f).setDuration(250).start()
-            } catch (_: Exception) {
+                Log.d(TAG_DECISION, "Overlay view successfully added to WindowManager for $pkg")
+            } catch (e: Exception) {
+                Log.e(TAG_DECISION, "Failed to add overlay view for $pkg: ${e.message}", e)
                 overlayView = null
                 overlayTargetPackage = null
+                shownForSession.remove(pkg)
             }
         }
     }
@@ -568,12 +702,25 @@ class UsageMonitorService : Service() {
         countdownRunnable?.let { handler.removeCallbacks(it) }
         countdownRunnable = null
 
-        val view = overlayView ?: return
+        val view = overlayView
         overlayView = null
+        val target = overlayTargetPackage
         overlayTargetPackage = null
-        try {
-            (getSystemService(Context.WINDOW_SERVICE) as WindowManager).removeView(view)
-        } catch (_: Exception) {}
+
+        if (view != null) {
+            try {
+                val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                wm.removeViewImmediate(view)
+                Log.d(TAG_DECISION, "Overlay view removed immediately (target was $target)")
+            } catch (e: Exception) {
+                try {
+                    (getSystemService(Context.WINDOW_SERVICE) as WindowManager).removeView(view)
+                    Log.d(TAG_DECISION, "Overlay view removed via removeView fallback")
+                } catch (e2: Exception) {
+                    Log.w(TAG_DECISION, "Error removing overlay view: ${e2.message}")
+                }
+            }
+        }
     }
 
     // ── Intervention Logging ────────────────────────────────────────────────────
