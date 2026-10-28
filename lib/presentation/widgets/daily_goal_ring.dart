@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_colors.dart';
 
 class DailyGoalRing extends StatelessWidget {
   final String label;
@@ -16,92 +17,78 @@ class DailyGoalRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isAchieved ? const Color(0xFF00E676) : const Color(0xFF7C4DFF);
-    final cardBg = isDark ? const Color(0xFF181827) : Colors.white;
+    final primaryColor = isAchieved ? AppColors.productive : AppColors.primary;
     final borderColor = isAchieved
-        ? const Color(0xFF00E676).withValues(alpha: 0.4)
-        : (isDark ? const Color(0xFF2B2B44) : const Color(0xFFE8EAED));
-    final ringBg = isDark ? const Color(0xFF24243A) : const Color(0xFFEEEEF4);
+        ? AppColors.productive.withValues(alpha: 0.35)
+        : AppColors.border;
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: cardBg,
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-              color: isAchieved
-                  ? const Color(0xFF00E676).withValues(alpha: 0.12)
-                  : Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(
-            color: borderColor,
-            width: 1.5,
-          ),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: borderColor, width: 1.0),
         ),
         child: Row(
           children: [
-            // Radial Ring
+            // Precision Radial Ring
             SizedBox(
-              width: 58,
-              height: 58,
+              width: 50,
+              height: 50,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   CircularProgressIndicator(
                     value: progressPercent.clamp(0.0, 1.0),
-                    strokeWidth: 6.5,
-                    backgroundColor: ringBg,
+                    strokeWidth: 4.0,
+                    backgroundColor: AppColors.surfaceElevated,
                     valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                     strokeCap: StrokeCap.round,
                   ),
                   Center(
                     child: Icon(
-                      isAchieved ? Icons.check_circle_rounded : Icons.flag_rounded,
+                      isAchieved ? Icons.check_rounded : Icons.flag_outlined,
                       color: primaryColor,
-                      size: 26,
+                      size: 20,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Text(
-                        'DAILY GOAL',
+                      const Text(
+                        'DAILY FOCUS TARGET',
                         style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.2,
-                          color: isAchieved ? const Color(0xFF00E676) : const Color(0xFF8E8EA2),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.1,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                       if (isAchieved) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00E676).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
+                            color: AppColors.productive.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4),
                           ),
                           child: const Text(
                             'ACHIEVED',
                             style: TextStyle(
                               fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF00E676),
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.productive,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
@@ -111,27 +98,28 @@ class DailyGoalRing extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : const Color(0xFF202124),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                      letterSpacing: -0.2,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${(progressPercent * 100).toInt()}% towards target • Tap to configure',
-                    style: TextStyle(
+                    '${(progressPercent * 100).toInt()}% towards goal • Tap to adjust target',
+                    style: const TextStyle(
                       fontSize: 11,
-                      color: isDark ? const Color(0xFF8E8EA2) : const Color(0xFF5F6368),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.chevron_right_rounded,
-              color: isDark ? const Color(0xFF5A5A74) : const Color(0xFF9AA0A6),
-              size: 22,
+              color: AppColors.textDisabled,
+              size: 20,
             ),
           ],
         ),

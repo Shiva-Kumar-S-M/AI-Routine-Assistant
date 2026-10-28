@@ -51,6 +51,7 @@ class _AppLimitDialogState extends State<AppLimitDialog> {
             minutes == null || minutes <= 0
                 ? 'Removed limit for ${widget.appName}'
                 : 'Set daily limit of $minutes minutes for ${widget.appName}',
+            style: const TextStyle(color: AppColors.onPrimary, fontWeight: FontWeight.w600),
           ),
           backgroundColor: AppColors.primary,
         ),
@@ -60,32 +61,30 @@ class _AppLimitDialogState extends State<AppLimitDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF181827) : Colors.white;
-    final textColor = isDark ? Colors.white : const Color(0xFF202124);
-    final subtextColor = isDark ? Colors.white60 : const Color(0xFF5F6368);
-    final chipBorder = isDark ? const Color(0xFF2E2E48) : AppColors.border;
-
     return AlertDialog(
-      backgroundColor: bgColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.border, width: 1.0),
+      ),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Set Daily Limit',
+          const Text(
+            'Daily App Limit',
             style: TextStyle(
-              color: textColor,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.2,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             widget.appName,
-            style: TextStyle(
-              color: subtextColor,
-              fontSize: 13,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
             ),
           ),
         ],
@@ -94,7 +93,7 @@ class _AppLimitDialogState extends State<AppLimitDialog> {
           ? const SizedBox(
               height: 100,
               child: Center(
-                  child: CircularProgressIndicator(color: AppColors.primary)))
+                  child: CircularProgressIndicator(color: AppColors.textPrimary)))
           : Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,17 +104,18 @@ class _AppLimitDialogState extends State<AppLimitDialog> {
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryContainer.withValues(alpha: isDark ? 0.25 : 1.0),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.surfaceElevated,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Current limit: $_currentLimitMinutes mins/day',
-                          style: TextStyle(
-                            color: isDark ? AppColors.primaryLight : AppColors.primary,
-                            fontWeight: FontWeight.bold,
+                          'Current: $_currentLimitMinutes mins/day',
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w600,
                             fontSize: 12,
                           ),
                         ),
@@ -126,7 +126,7 @@ class _AppLimitDialogState extends State<AppLimitDialog> {
                             style: TextStyle(
                               color: AppColors.distracting,
                               fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -134,12 +134,12 @@ class _AppLimitDialogState extends State<AppLimitDialog> {
                     ),
                   ),
 
-                Text(
-                  'Select daily time limit:',
+                const Text(
+                  'Select daily time threshold:',
                   style: TextStyle(
-                    color: textColor,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -149,26 +149,26 @@ class _AppLimitDialogState extends State<AppLimitDialog> {
                   runSpacing: 8,
                   children: _presetLimits.map((mins) {
                     final isSelected = _currentLimitMinutes == mins;
-                    return ChoiceChip(
-                      label: Text('${mins}m'),
-                      selected: isSelected,
-                      onSelected: (_) => _saveLimit(mins),
-                      selectedColor: isDark
-                          ? AppColors.primary.withValues(alpha: 0.3)
-                          : AppColors.primaryContainer,
-                      labelStyle: TextStyle(
-                        color: isSelected
-                            ? (isDark ? AppColors.primaryLight : AppColors.primary)
-                            : subtextColor,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(
-                          color: isSelected
-                              ? AppColors.primary
-                              : chipBorder,
+                    return InkWell(
+                      onTap: () => _saveLimit(mins),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.primary : AppColors.surfaceElevated,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isSelected ? AppColors.primary : AppColors.border,
+                            width: 1.0,
+                          ),
+                        ),
+                        child: Text(
+                          '${mins}m',
+                          style: TextStyle(
+                            color: isSelected ? AppColors.onPrimary : AppColors.textSecondary,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     );
@@ -179,7 +179,7 @@ class _AppLimitDialogState extends State<AppLimitDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Cancel', style: TextStyle(color: subtextColor)),
+          child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
         ),
       ],
     );

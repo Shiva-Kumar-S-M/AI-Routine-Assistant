@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/constants/app_colors.dart';
 import 'dashboard_screen.dart';
 import 'journey_screen.dart';
 import 'insights_screen.dart';
@@ -70,48 +71,48 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0E0E18),
+      backgroundColor: AppColors.background,
       body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF141424),
+          color: AppColors.surface,
           border: Border(
-            top: BorderSide(color: Color(0xFF26263C), width: 1.0),
+            top: BorderSide(color: AppColors.border, width: 1.0),
           ),
         ),
         child: NavigationBar(
           selectedIndex: _selectedIndex,
           onDestinationSelected: _onNavSelected,
-          backgroundColor: const Color(0xFF141424),
-          indicatorColor: const Color(0x337C4DFF),
+          backgroundColor: AppColors.surface,
+          indicatorColor: AppColors.surfaceRaised,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
-          height: 68,
+          height: 64,
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           destinations: const [
             NavigationDestination(
-              icon: Icon(Icons.home_outlined, color: Color(0xFF8E8EA2)),
-              selectedIcon: Icon(Icons.home_rounded, color: Color(0xFF7C4DFF)),
-              label: 'Home',
+              icon: Icon(Icons.grid_view_outlined, color: AppColors.textSecondary, size: 22),
+              selectedIcon: Icon(Icons.grid_view_rounded, color: AppColors.textPrimary, size: 22),
+              label: 'Overview',
             ),
             NavigationDestination(
-              icon: Icon(Icons.bolt_outlined, color: Color(0xFF8E8EA2)),
-              selectedIcon: Icon(Icons.bolt_rounded, color: Color(0xFFFF9100)),
+              icon: Icon(Icons.extension_outlined, color: AppColors.textSecondary, size: 22),
+              selectedIcon: Icon(Icons.extension_rounded, color: AppColors.textPrimary, size: 22),
               label: 'Brain Gym',
             ),
             NavigationDestination(
-              icon: Icon(Icons.military_tech_outlined, color: Color(0xFF8E8EA2)),
-              selectedIcon: Icon(Icons.military_tech_rounded, color: Color(0xFFFFD700)),
+              icon: Icon(Icons.military_tech_outlined, color: AppColors.textSecondary, size: 22),
+              selectedIcon: Icon(Icons.military_tech_rounded, color: AppColors.textPrimary, size: 22),
               label: 'Journey',
             ),
             NavigationDestination(
-              icon: Icon(Icons.psychology_outlined, color: Color(0xFF8E8EA2)),
-              selectedIcon: Icon(Icons.psychology_rounded, color: Color(0xFF00E5FF)),
+              icon: Icon(Icons.insights_outlined, color: AppColors.textSecondary, size: 22),
+              selectedIcon: Icon(Icons.insights_rounded, color: AppColors.textPrimary, size: 22),
               label: 'Insights',
             ),
             NavigationDestination(
-              icon: Icon(Icons.settings_outlined, color: Color(0xFF8E8EA2)),
-              selectedIcon: Icon(Icons.settings_rounded, color: Colors.white),
+              icon: Icon(Icons.tune_outlined, color: AppColors.textSecondary, size: 22),
+              selectedIcon: Icon(Icons.tune_rounded, color: AppColors.textPrimary, size: 22),
               label: 'Settings',
             ),
           ],

@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ai_routine_assistant/domain/models/brain_gym_models.dart';
-import 'package:ai_routine_assistant/domain/services/brain_gym_generator.dart';
-import 'package:ai_routine_assistant/data/repositories/brain_gym_repository.dart';
-import 'package:ai_routine_assistant/presentation/widgets/level_up_dialog.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../domain/models/brain_gym_models.dart';
+import '../../../domain/services/brain_gym_generator.dart';
+import '../../../data/repositories/brain_gym_repository.dart';
+import '../../widgets/level_up_dialog.dart';
 
 class MemoryFlashScreen extends StatefulWidget {
   const MemoryFlashScreen({super.key});
@@ -59,54 +60,58 @@ class _MemoryFlashScreenState extends State<MemoryFlashScreen> {
       if (!mounted) return;
       setState(() => _activeFlashingTile = null);
 
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future.delayed(const Duration(milliseconds: 150));
     }
 
-    if (mounted) {
-      setState(() => _isPlayingSequence = false);
-    }
+    if (!mounted) return;
+    setState(() => _isPlayingSequence = false);
   }
 
-  void _onTileTap(int tileIndex) {
+  void _onTileTap(int index) {
     if (_isPlayingSequence || _isGameOver) return;
+
     HapticFeedback.lightImpact();
+    setState(() {
+      _userSequence.add(index);
+    });
 
-    final expectedIndex = _currentSequence[_userSequence.length];
     _totalAttemptedTiles++;
+    final currentStep = _userSequence.length - 1;
 
-    if (tileIndex == expectedIndex) {
-      _userSequence.add(tileIndex);
+    if (_currentSequence[currentStep] == index) {
       _totalCorrectTiles++;
-      _currentCombo++;
-      if (_currentCombo > _maxCombo) _maxCombo = _currentCombo;
-      _score += 10 * _currentCombo;
-      setState(() {});
+      _score += 10 * _round;
 
       if (_userSequence.length == _currentSequence.length) {
-        // Round completed successfully!
-        HapticFeedback.mediumImpact();
-        if (_round < 6) {
-          _round++;
-          _sequenceLength++;
+        _currentCombo++;
+        if (_currentCombo > _maxCombo) _maxCombo = _currentCombo;
+        _score += 25 * _round;
+
+        Timer(const Duration(milliseconds: 500), () {
+          if (!mounted) return;
+          setState(() {
+            _round++;
+            if (_round % 2 == 1 && _sequenceLength < 8) {
+              _sequenceLength++;
+            }
+          });
           _startNextRound();
-        } else {
-          _finishGame();
-        }
+        });
       }
     } else {
-      // Mistake!
       HapticFeedback.heavyImpact();
-      _finishGame();
+      _endGame();
     }
   }
 
-  Future<void> _finishGame() async {
+  Future<void> _endGame() async {
     setState(() => _isGameOver = true);
+
     final summary = await _repository.recordGameResult(
       mode: BrainGymGameMode.memoryFlash,
       score: _score,
       correctAnswers: _totalCorrectTiles,
-      totalQuestions: _totalAttemptedTiles > 0 ? _totalAttemptedTiles : 1,
+      totalQuestions: _totalAttemptedTiles == 0 ? 1 : _totalAttemptedTiles,
       maxCombo: _maxCombo,
     );
 
@@ -127,56 +132,73 @@ class _MemoryFlashScreenState extends State<MemoryFlashScreen> {
       isDismissible: false,
       enableDrag: false,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(28),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'MEMORY FLASH COMPLETE',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.5,
-                color: Color(0xFF00B0FF),
+      builder: (ctx) => _buildResultSheet(ctx, summary),
+    );
+  }
+
+  Widget _buildResultSheet(BuildContext ctx, BrainGymResultSummary summary) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        border: Border(top: BorderSide(color: AppColors.border, width: 1.0)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 36,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: AppColors.border,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const Text(
+            'MEMORY MATRIX PROTOCOL COMPLETE',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.2,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$_score Points',
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Round $_round ($_sequenceLength tiles) · Delta: ${summary.ratingDelta >= 0 ? "+${summary.ratingDelta}" : "${summary.ratingDelta}"}',
+            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.background,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
+              child: const Text('Back to Hub', style: TextStyle(fontWeight: FontWeight.w600)),
             ),
-            const SizedBox(height: 8),
-            Text(
-              '$_score Points',
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF202124),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              'Reached Round $_round ($_sequenceLength tiles) · Rating Delta: ${summary.ratingDelta >= 0 ? "+${summary.ratingDelta}" : "${summary.ratingDelta}"}',
-              style: const TextStyle(fontSize: 14, color: Color(0xFF5F6368)),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  Navigator.of(context).pop();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00B0FF),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: const Text('Back to Hub', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -184,34 +206,41 @@ class _MemoryFlashScreenState extends State<MemoryFlashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: Color(0xFF202124)),
+                    icon: const Icon(Icons.close_rounded, color: AppColors.textPrimary),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
-                  Text(
-                    'Round $_round · $_sequenceLength Tiles',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF5F6368),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Text(
+                      'Round $_round · $_sequenceLength Tiles',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ),
                   Text(
                     '$_score PTS',
                     style: const TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF202124),
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -219,68 +248,57 @@ class _MemoryFlashScreenState extends State<MemoryFlashScreen> {
               const SizedBox(height: 20),
 
               Text(
-                _isPlayingSequence ? 'WATCH THE SEQUENCE...' : 'REPEAT THE PATTERN',
+                _isPlayingSequence ? 'MEMORIZE SPATIAL SEQUENCE' : 'REPRODUCE PATTERN',
                 style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.5,
-                  color: _isPlayingSequence ? const Color(0xFFFF9100) : const Color(0xFF00C853),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
+                  color: _isPlayingSequence ? AppColors.primary : AppColors.productive,
                 ),
               ),
               const Spacer(),
 
-              // 3x3 Grid
               AspectRatio(
                 aspectRatio: 1.0,
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(28),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: GridView.builder(
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
                     ),
                     itemCount: 9,
                     itemBuilder: (context, index) {
                       final isFlashing = _activeFlashingTile == index;
                       final isTapped = _userSequence.contains(index);
 
-                      Color tileColor = const Color(0xFFF1F3F4);
+                      Color tileColor = AppColors.surfaceElevated;
+                      Color borderColor = AppColors.border;
+
                       if (isFlashing) {
-                        tileColor = const Color(0xFF00B0FF);
+                        tileColor = AppColors.primary;
+                        borderColor = AppColors.primary;
                       } else if (isTapped) {
-                        tileColor = const Color(0xFF80D8FF).withValues(alpha: 0.5);
+                        tileColor = AppColors.primary.withValues(alpha: 0.25);
+                        borderColor = AppColors.primary;
                       }
 
                       return InkWell(
                         onTap: () => _onTileTap(index),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 180),
                           decoration: BoxDecoration(
                             color: tileColor,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: isFlashing
-                                ? [
-                                    BoxShadow(
-                                      color: const Color(0xFF00B0FF).withValues(alpha: 0.5),
-                                      blurRadius: 16,
-                                      spreadRadius: 2,
-                                    ),
-                                  ]
-                                : null,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: borderColor),
                           ),
                         ),
                       );
@@ -291,8 +309,8 @@ class _MemoryFlashScreenState extends State<MemoryFlashScreen> {
               const Spacer(),
 
               Text(
-                'Remember ${_currentSequence.length} highlighted tiles in order',
-                style: const TextStyle(fontSize: 12, color: Color(0xFF70757A)),
+                'Remember ${_currentSequence.length} highlighted positions in chronological order',
+                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 16),
             ],

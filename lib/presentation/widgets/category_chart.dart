@@ -41,68 +41,90 @@ class _CategoryChartState extends State<CategoryChart> {
 
     if (total == 0) {
       return Container(
-        height: 180,
+        height: 160,
         alignment: Alignment.center,
         child: const Text(
           'No usage data collected yet today',
-          style: TextStyle(color: Color(0xFF5F6368), fontSize: 13),
+          style: TextStyle(color: AppColors.textDisabled, fontSize: 13),
         ),
       );
     }
 
     return Column(
       children: [
-        AspectRatio(
-          aspectRatio: 1.6,
-          child: PieChart(
-            PieChartData(
-              sectionsSpace: 4,
-              centerSpaceRadius: 42,
-              pieTouchData: PieTouchData(
-                touchCallback: (event, response) {
-                  if (!event.isInterestedForInteractions ||
-                      response == null ||
-                      response.touchedSection == null) {
-                    setState(() => _touchedIndex = -1);
-                    return;
-                  }
-                  final idx = response.touchedSection!.touchedSectionIndex;
-                  setState(() => _touchedIndex = idx);
-                  if (event is FlTapUpEvent && widget.onCategoryTapped != null) {
-                    final tapped = _labels[idx];
-                    widget.onCategoryTapped!(
-                        widget.highlightedCategory == tapped ? null : tapped);
-                  }
-                },
-              ),
-              sections: List.generate(3, (i) {
-                final isHighlighted = widget.highlightedCategory == null ||
-                    widget.highlightedCategory == _labels[i];
-                final isTouched = _touchedIndex == i;
-                final radius = isTouched ? 56.0 : 48.0;
-                return PieChartSectionData(
-                  color: _colors[i].withValues(alpha: isHighlighted ? 1.0 : 0.3),
-                  value: values[i],
-                  title: values[i] > 0
-                      ? '${(values[i] / total * 100).toStringAsFixed(0)}%'
-                      : '',
-                  radius: radius,
-                  titleStyle: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+        SizedBox(
+          height: 170,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              PieChart(
+                PieChartData(
+                  sectionsSpace: 3,
+                  centerSpaceRadius: 52,
+                  pieTouchData: PieTouchData(
+                    touchCallback: (event, response) {
+                      if (!event.isInterestedForInteractions ||
+                          response == null ||
+                          response.touchedSection == null) {
+                        setState(() => _touchedIndex = -1);
+                        return;
+                      }
+                      final idx = response.touchedSection!.touchedSectionIndex;
+                      setState(() => _touchedIndex = idx);
+                      if (event is FlTapUpEvent && widget.onCategoryTapped != null) {
+                        final tapped = _labels[idx];
+                        widget.onCategoryTapped!(
+                            widget.highlightedCategory == tapped ? null : tapped);
+                      }
+                    },
                   ),
-                );
-              }),
-            ),
+                  sections: List.generate(3, (i) {
+                    final isHighlighted = widget.highlightedCategory == null ||
+                        widget.highlightedCategory == _labels[i];
+                    final isTouched = _touchedIndex == i;
+                    final strokeWidth = isTouched ? 20.0 : 16.0;
+                    return PieChartSectionData(
+                      color: _colors[i].withValues(alpha: isHighlighted ? 0.95 : 0.25),
+                      value: values[i] > 0 ? values[i] : 0.001,
+                      showTitle: false,
+                      radius: strokeWidth,
+                    );
+                  }),
+                ),
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${(total / 3600).toStringAsFixed(1)}h',
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const Text(
+                    'TOTAL',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(3, (i) {
             final isActive = widget.highlightedCategory == null ||
                 widget.highlightedCategory == _labels[i];
+            final percent = total > 0 ? (values[i] / total * 100).toStringAsFixed(0) : '0';
             return GestureDetector(
               onTap: () {
                 if (widget.onCategoryTapped != null) {
@@ -112,13 +134,22 @@ class _CategoryChartState extends State<CategoryChart> {
                           : _labels[i]);
                 }
               },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isActive ? AppColors.surfaceElevated : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isActive ? AppColors.border : Colors.transparent,
+                  ),
+                ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 10,
-                      height: 10,
+                      width: 8,
+                      height: 8,
                       decoration: BoxDecoration(
                         color: _colors[i].withValues(alpha: isActive ? 1.0 : 0.3),
                         shape: BoxShape.circle,
@@ -126,14 +157,11 @@ class _CategoryChartState extends State<CategoryChart> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      _displayNames[i],
+                      '${_displayNames[i]} $percent%',
                       style: TextStyle(
-                        color: isActive
-                            ? const Color(0xFF202124)
-                            : const Color(0xFF80868B),
-                        fontSize: 12,
-                        fontWeight:
-                            isActive ? FontWeight.w600 : FontWeight.normal,
+                        color: isActive ? AppColors.textPrimary : AppColors.textDisabled,
+                        fontSize: 11,
+                        fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                       ),
                     ),
                   ],

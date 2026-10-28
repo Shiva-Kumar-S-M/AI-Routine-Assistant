@@ -129,9 +129,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning, Focus Master ☀️';
-    if (hour < 17) return 'Good Afternoon, Attention Hero ⚡';
-    return 'Good Evening, Discipline Warrior 🌙';
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
   }
 
   void _showDailyGoalDialog() {
@@ -143,19 +143,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF181827),
+            backgroundColor: AppColors.surface,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-              side: const BorderSide(color: Color(0xFF2D2D46)),
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: AppColors.border, width: 1.0),
             ),
-            title: const Text('Set Daily Focus Goal',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            title: const Text(
+              'Set Daily Focus Goal',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+                fontSize: 16,
+                letterSpacing: -0.2,
+              ),
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Choose your daily target:',
-                    style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 13)),
+                const Text(
+                  'Choose your daily target:',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                ),
                 const SizedBox(height: 12),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -163,7 +172,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     value: 'turn_backs',
                     // ignore: deprecated_member_use
                     groupValue: selectedType,
-                    activeColor: const Color(0xFF7C4DFF),
+                    activeColor: AppColors.primary,
                     // ignore: deprecated_member_use
                     onChanged: (val) => setDialogState(() {
                       selectedType = val!;
@@ -171,9 +180,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     }),
                   ),
                   title: const Text('Turn-backs from Distraction',
-                      style: TextStyle(color: Colors.white, fontSize: 14)),
+                      style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w500)),
                   subtitle: const Text('Resist overlays (Recommended)',
-                      style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 12)),
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
                   onTap: () => setDialogState(() {
                     selectedType = 'turn_backs';
                     target = 3;
@@ -185,7 +194,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     value: 'distracting_minutes',
                     // ignore: deprecated_member_use
                     groupValue: selectedType,
-                    activeColor: const Color(0xFF7C4DFF),
+                    activeColor: AppColors.primary,
                     // ignore: deprecated_member_use
                     onChanged: (val) => setDialogState(() {
                       selectedType = val!;
@@ -193,9 +202,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     }),
                   ),
                   title: const Text('Max Distraction Screen Time',
-                      style: TextStyle(color: Colors.white, fontSize: 14)),
+                      style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w500)),
                   subtitle: const Text('Keep distracting apps under limit',
-                      style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 12)),
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
                   onTap: () => setDialogState(() {
                     selectedType = 'distracting_minutes';
                     target = 60;
@@ -207,12 +216,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Text(
                       selectedType == 'turn_backs' ? 'Target Turn-backs:' : 'Target Minutes:',
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.w500),
                     ),
                     DropdownButton<int>(
                       value: target,
-                      dropdownColor: const Color(0xFF222238),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      dropdownColor: AppColors.surfaceElevated,
+                      style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 13),
                       items: (selectedType == 'turn_backs' ? [1, 2, 3, 5, 8] : [30, 45, 60, 90, 120])
                           .map((n) => DropdownMenuItem(value: n, child: Text('$n')))
                           .toList(),
@@ -227,7 +236,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Cancel', style: TextStyle(color: Color(0xFF8E8EA2))),
+                child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -236,10 +245,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _loadDashboardData();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7C4DFF),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.onPrimary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text('Save Goal', style: TextStyle(color: Colors.white)),
+                child: const Text('Save Goal'),
               ),
             ],
           );
@@ -308,24 +318,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        side: BorderSide(color: AppColors.border, width: 1.0),
+      ),
       builder: (ctx) => Container(
         padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Color(0xFF181827),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          border: Border(top: BorderSide(color: Color(0xFF2D2D46))),
-        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
               child: Container(
-                width: 40,
+                width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF383854),
+                  color: AppColors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -335,27 +344,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Productivity Score Formula',
+                  'Productivity Calibration',
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.2,
                   ),
                 ),
                 Text(
                   '$score / 100',
                   style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.scoreColor(score),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             const Text(
-              'Your score is computed 100% on-device from 3 weighted signal metrics:',
-              style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 13),
+              'Your score is computed 100% on-device from 3 weighted telemetry metrics:',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
             ),
             const SizedBox(height: 16),
             _signalRow('Distraction Ratio (45%)', '$distractionRatioPct pts', AppColors.primary),
@@ -384,16 +394,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(width: 10),
               Text(title,
                   style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontSize: 13,
-                      fontWeight: FontWeight.w600)),
+                      fontWeight: FontWeight.w500)),
             ],
           ),
           Text(detail,
               style: const TextStyle(
-                  color: Color(0xFF9E9EAF),
+                  color: AppColors.textSecondary,
                   fontSize: 12,
-                  fontWeight: FontWeight.bold)),
+                  fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -415,44 +425,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 _getGreeting(),
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontSize: 18,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w600,
                   letterSpacing: -0.3,
                 ),
               ),
               const SizedBox(height: 3),
               const Text(
-                'AI Routine Assistant • 100% On-Device',
-                style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 12),
+                'AI Routine Assistant • On-Device Telemetry',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
             ],
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF381518), Color(0xFF281119)],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFFF5722).withValues(alpha: 0.5)),
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.border),
           ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFF5722), size: 20),
+              const Icon(Icons.bolt_rounded, color: AppColors.fire, size: 18),
               const SizedBox(width: 4),
               Text(
                 '${streak}d',
                 style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
                 ),
               ),
               if (freezes > 0) ...[
                 const SizedBox(width: 6),
-                const Icon(Icons.shield_rounded, color: Color(0xFF00E5FF), size: 14),
+                const Icon(Icons.shield_outlined, color: AppColors.cyan, size: 14),
               ],
             ],
           ),
@@ -473,32 +482,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
           MaterialPageRoute(builder: (_) => const JourneyScreen()),
         ).then((_) => _loadDashboardData());
       },
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF2B1D4E), Color(0xFF1E1738)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: const Color(0xFF563B8C)),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border),
         ),
         child: Column(
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF7C4DFF).withValues(alpha: 0.25),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF7C4DFF)),
+                    color: AppColors.surfaceElevated,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.border),
                   ),
-                  child: const Icon(Icons.military_tech_rounded, color: Color(0xFFFFD700), size: 24),
+                  child: const Icon(Icons.military_tech_outlined, color: AppColors.textPrimary, size: 20),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -509,17 +514,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Text(
                             'Level ${p.level} • ${p.levelTitle}',
                             style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: -0.2,
                             ),
                           ),
                           Text(
                             '${p.xp} Total XP',
                             style: const TextStyle(
-                              color: Color(0xFFFFD700),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
                             ),
                           ),
                         ],
@@ -527,21 +533,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 3),
                       Text(
                         '${p.currentLevelXp} / ${p.xpNeededForNextLevel} XP to Level ${p.level + 1}',
-                        style: const TextStyle(color: Color(0xFF9E9EAF), fontSize: 11),
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
                 value: levelProgress.clamp(0.0, 1.0),
-                minHeight: 8,
-                backgroundColor: const Color(0xFF332A55),
-                valueColor: const AlwaysStoppedAnimation(Color(0xFF7C4DFF)),
+                minHeight: 4,
+                backgroundColor: AppColors.surfaceElevated,
+                valueColor: const AlwaysStoppedAnimation(AppColors.primary),
               ),
             ),
           ],
@@ -555,21 +561,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final turnBacks = _userProgress?.totalTurnBacks ?? 0;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF181827),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF2B2B44)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF00E676).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(14),
+              color: AppColors.productiveContainer,
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.timer_rounded, color: Color(0xFF00E676), size: 24),
+            child: const Icon(Icons.timer_outlined, color: AppColors.productive, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -577,22 +583,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$reclaimedStr Reclaimed',
+                  '$reclaimedStr Focus Reclaimed',
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    letterSpacing: -0.2,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Saved across $turnBacks resisted distraction impulses this month',
-                  style: const TextStyle(color: Color(0xFF8E8EA2), fontSize: 11),
+                  'Saved across $turnBacks resisted distraction events this cycle',
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.auto_graph_rounded, color: Color(0xFF00E676), size: 20),
+          const Icon(Icons.trending_up_rounded, color: AppColors.productive, size: 18),
         ],
       ),
     );
@@ -600,25 +607,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildBrainGymQuickStartCard() {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF281C3F), Color(0xFF161E36)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFF483568)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFFFF9100), Color(0xFFFF3D00)]),
-              borderRadius: BorderRadius.circular(16),
+              color: AppColors.surfaceElevated,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.border),
             ),
-            child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 26),
+            child: const Icon(Icons.extension_outlined, color: AppColors.textPrimary, size: 22),
           ),
           const SizedBox(width: 14),
           const Expanded(
@@ -628,25 +632,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   'BRAIN GYM SPRINT',
                   style: TextStyle(
-                    color: Color(0xFFFF9100),
+                    color: AppColors.textSecondary,
                     fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.1,
                   ),
                 ),
                 SizedBox(height: 2),
                 Text(
-                  '60s Mental Math Blitz',
+                  '60s Cognitive Sprint',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Rapid impulse deflection • +20 XP',
-                  style: TextStyle(color: Color(0xFF9E9EAF), fontSize: 11),
+                  'Rapid attention recalibration • +20 XP',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
                 ),
               ],
             ),
@@ -658,12 +662,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ).then((_) => _loadDashboardData());
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF9100),
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             ),
-            child: const Text('Sprint', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Start', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
           ),
         ],
       ),
@@ -676,11 +681,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       onTap: () => _showScoreBreakdownSheet(score, productiveSecs, distractingSecs),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: const Color(0xFF181827),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: const Color(0xFF2B2B44)),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border),
         ),
         child: Column(
           children: [
@@ -693,38 +698,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const Row(
                         children: [
                           Text(
-                            'Productivity Score',
+                            'Productivity Calibration',
                             style: TextStyle(
-                              color: Color(0xFF8E8EA2),
-                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
                             ),
                           ),
                           SizedBox(width: 4),
-                          Icon(Icons.info_outline, size: 14, color: Color(0xFF6E6E84)),
+                          Icon(Icons.info_outline, size: 13, color: AppColors.textDisabled),
                         ],
                       ),
                       const SizedBox(height: 6),
                       Text(
                         scoreDesc,
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.2,
                         ),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  width: 68,
-                  height: 68,
+                  width: 58,
+                  height: 58,
                   decoration: BoxDecoration(
-                    color: scoreContainerColor,
+                    color: AppColors.surfaceElevated,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: scoreColor.withValues(alpha: 0.5),
-                      width: 2,
+                      color: scoreColor.withValues(alpha: 0.6),
+                      width: 1.5,
                     ),
                   ),
                   child: Center(
@@ -732,8 +739,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       '$score',
                       style: TextStyle(
                         color: scoreColor,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.5,
                       ),
                     ),
                   ),
@@ -741,7 +749,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: Color(0xFF28283C), height: 1),
+            const Divider(color: AppColors.border, height: 1),
             const SizedBox(height: 14),
             Row(
               children: [
@@ -751,7 +759,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     label: 'Focus',
                     value: _formatMinutes(_focusMinutesToday),
                     color: AppColors.productive,
-                    bg: const Color(0xFF122C24),
+                    bg: AppColors.surfaceElevated,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -761,7 +769,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     label: 'Distraction',
                     value: '${(distractingSecs / 60).round()}m',
                     color: AppColors.distracting,
-                    bg: const Color(0xFF331620),
+                    bg: AppColors.surfaceElevated,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -770,8 +778,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.check_circle_outline,
                     label: 'Productive',
                     value: '${(productiveSecs / 60).round()}m',
-                    color: AppColors.primary,
-                    bg: const Color(0xFF221A3D),
+                    color: AppColors.textPrimary,
+                    bg: AppColors.surfaceElevated,
                   ),
                 ),
               ],
@@ -796,40 +804,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final scoreContainerColor = AppColors.scoreContainerColor(score);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0E0E18),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFF0E0E18),
+        backgroundColor: AppColors.background,
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF7C4DFF), Color(0xFF651FFF)]),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.surfaceElevated,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.border),
               ),
-              child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 20),
+              child: const Icon(Icons.grid_view_rounded, color: AppColors.textPrimary, size: 18),
             ),
             const SizedBox(width: 10),
             const Text(
               'Focus Assistant',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 19,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.3,
+                color: AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.2,
               ),
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF8E8EA2)),
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.textSecondary, size: 20),
             onPressed: _loadDashboardData,
             tooltip: 'Refresh Data',
           ),
           IconButton(
-            icon: const Icon(Icons.timer_outlined, color: Color(0xFF8E8EA2)),
+            icon: const Icon(Icons.timer_outlined, color: AppColors.textSecondary, size: 20),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const FocusSessionScreen()),
             ),
@@ -838,17 +847,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.textPrimary))
           : RefreshIndicator(
               onRefresh: _loadDashboardData,
-              color: const Color(0xFF7C4DFF),
+              color: AppColors.textPrimary,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. Greeting & Streak Flame Header
+                    // 1. Greeting & Streak Header
                     _buildGreetingAndStreakHeader(),
                     const SizedBox(height: 14),
 
@@ -878,7 +887,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // 6. Productivity Score Hero Card
                     _buildProductivityScoreCard(score, scoreDesc, scoreColor, scoreContainerColor,
                         productiveSecs, distractingSecs),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // Quick Actions
                     Row(
@@ -887,9 +896,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: ChunkyButton(
                             text: 'Start Focus',
                             icon: Icons.play_arrow_rounded,
-                            height: 48,
-                            borderRadius: 16,
-                            gradient: const [Color(0xFF7C4DFF), Color(0xFF651FFF)],
+                            height: 46,
+                            borderRadius: 12,
                             onPressed: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(builder: (_) => const FocusSessionScreen()),
@@ -902,8 +910,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: ChunkyButton(
                             text: 'App Limits',
                             icon: Icons.tune_rounded,
-                            height: 48,
-                            borderRadius: 16,
+                            height: 46,
+                            borderRadius: 12,
                             isSecondary: true,
                             onPressed: () {
                               Navigator.of(context).push(
@@ -914,7 +922,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // Top Apps Used Today
                     if (_topApps.isNotEmpty) ...[
@@ -922,30 +930,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Top Apps Today',
+                            'Top Applications',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: -0.2,
                             ),
                           ),
                           Text(
                             'Tap to set limit',
                             style: TextStyle(
-                              color: Color(0xFF7C4DFF),
+                              color: AppColors.textSecondary,
                               fontSize: 11,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF181827),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: const Color(0xFF2B2B44)),
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.border),
                         ),
                         child: Column(
                           children: _topApps.asMap().entries.map((entry) {
@@ -959,7 +968,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             return Column(
                               children: [
                                 if (idx > 0)
-                                  const Divider(color: Color(0xFF28283C), height: 16),
+                                  const Divider(color: AppColors.border, height: 14),
                                 InkWell(
                                   onTap: () {
                                     showDialog(
@@ -971,15 +980,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       ),
                                     );
                                   },
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(8),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 4),
                                     child: Row(
                                       children: [
                                         CircleAvatar(
-                                          radius: 18,
+                                          radius: 16,
                                           backgroundColor: catColor.withValues(alpha: 0.15),
-                                          child: Icon(Icons.android_rounded, size: 20, color: catColor),
+                                          child: Icon(Icons.android_rounded, size: 18, color: catColor),
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(
@@ -989,16 +998,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               Text(
                                                 appName,
                                                 style: const TextStyle(
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 14,
-                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13,
+                                                  color: AppColors.textPrimary,
                                                 ),
                                               ),
                                               Text(
                                                 (app['category'] as String).toUpperCase(),
                                                 style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w600,
                                                   color: catColor,
                                                 ),
                                               ),
@@ -1008,13 +1017,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         Text(
                                           _formatMinutes(durationSecs ~/ 60),
                                           style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 12,
+                                            color: AppColors.textPrimary,
                                           ),
                                         ),
                                         const SizedBox(width: 4),
-                                        const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF6E6E84)),
+                                        const Icon(Icons.chevron_right_rounded, size: 16, color: AppColors.textDisabled),
                                       ],
                                     ),
                                   ),
@@ -1024,7 +1033,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           }).toList(),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
                     ],
 
                     // Screen Time Donut Breakdown
@@ -1034,42 +1043,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const Text(
                           "Today's Screen Time",
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.2,
                           ),
                         ),
                         if (_selectedCategory != null)
                           GestureDetector(
                             onTap: () => _onCategoryTapped(null),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF261D4E),
-                                borderRadius: BorderRadius.circular(12),
+                                color: AppColors.surfaceElevated,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: AppColors.border),
                               ),
                               child: const Row(
                                 children: [
-                                  Icon(Icons.close, color: Color(0xFF7C4DFF), size: 14),
+                                  Icon(Icons.close, color: AppColors.textSecondary, size: 12),
                                   SizedBox(width: 4),
                                   Text('Clear filter',
                                       style: TextStyle(
-                                          color: Color(0xFF7C4DFF),
+                                          color: AppColors.textSecondary,
                                           fontSize: 11,
-                                          fontWeight: FontWeight.w600)),
+                                          fontWeight: FontWeight.w500)),
                                 ],
                               ),
                             ),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF181827),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFF2B2B44)),
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: CategoryChart(
                         categoryTotals: _categoryTotals,
@@ -1077,24 +1088,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         highlightedCategory: _selectedCategory,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // 7-Day Trend Chart
                     const Text(
-                      '7-Day Screen Time Trend',
+                      '7-Day Trend',
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF181827),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFF2B2B44)),
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: TrendChart(
                         trendTotals: _trendTotals,
@@ -1104,13 +1116,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
 
                     if (_selectedDay != null && _selectedDayBreakdown != null) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       Container(
-                        padding: const EdgeInsets.all(14),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF202035),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFF33334E)),
+                          color: AppColors.surfaceElevated,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1123,19 +1135,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // Intervention Alerts List
                     if (_filteredAlerts.isNotEmpty) ...[
                       const Text(
-                        'Recent Interventions & Routines',
+                        'Recent Interventions & Telemetry',
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.2,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       Column(
                         children: [
                           ..._filteredAlerts.map((alert) => AlertTile(alert: alert)),
@@ -1146,16 +1159,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ? const Center(
                                       child: Padding(
                                         padding: EdgeInsets.all(12),
-                                        child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
+                                        child: CircularProgressIndicator(color: AppColors.textPrimary),
                                       ),
                                     )
                                   : OutlinedButton.icon(
                                       onPressed: _loadMoreAlerts,
-                                      icon: const Icon(Icons.expand_more, size: 18),
+                                      icon: const Icon(Icons.expand_more, size: 16),
                                       label: const Text('Load More Alerts'),
                                       style: OutlinedButton.styleFrom(
-                                        minimumSize: const Size.fromHeight(44),
-                                        side: const BorderSide(color: Color(0xFF2B2B44)),
+                                        minimumSize: const Size.fromHeight(42),
+                                        side: const BorderSide(color: AppColors.border),
                                       ),
                                     ),
                             ),
@@ -1174,10 +1187,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _miniBreakdown(String label, int seconds, Color color) {
     return Column(
       children: [
-        Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+        Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600)),
         const SizedBox(height: 2),
         Text(_formatMinutes(seconds ~/ 60),
-            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+            style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.w600)),
       ],
     );
   }

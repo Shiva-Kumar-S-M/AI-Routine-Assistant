@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/app_colors.dart';
 import '../../data/repositories/usage_repository.dart';
 import '../../data/repositories/focus_repository.dart';
 import '../../data/repositories/preferences_repository.dart';
@@ -65,58 +66,46 @@ class _InsightsScreenState extends State<InsightsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0E0E18),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
-          'AI Routine Insights',
+          'Telemetry Insights',
           style: TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.3,
+            color: AppColors.textPrimary,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.2,
           ),
         ),
-        backgroundColor: const Color(0xFF0E0E18),
+        backgroundColor: AppColors.background,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF8E8EA2)),
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.textSecondary, size: 20),
             onPressed: _loadInsightsData,
             tooltip: 'Refresh Insights',
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF7C4DFF)))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.textPrimary))
           : RefreshIndicator(
               onRefresh: _loadInsightsData,
-              color: const Color(0xFF7C4DFF),
+              color: AppColors.textPrimary,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Predictability Index Hero Card
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(22),
+                      padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF261D4E), Color(0xFF1B1736)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFF4C3876)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
-                            blurRadius: 18,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,94 +117,96 @@ class _InsightsScreenState extends State<InsightsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Text(
-                                    'Routine Predictability Index',
+                                    'BEHAVIORAL CONSISTENCY INDEX',
                                     style: TextStyle(
-                                      color: Color(0xFF8E8EA2),
-                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                      fontSize: 10,
                                       fontWeight: FontWeight.w600,
-                                      letterSpacing: 0.5,
+                                      letterSpacing: 1.1,
                                     ),
                                   ),
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 4),
                                   Text(
                                     '$_predictabilityIndex% Consistent',
                                     style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.textPrimary,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: -0.5,
                                     ),
                                   ),
                                 ],
                               ),
                               Container(
-                                padding: const EdgeInsets.all(12),
+                                padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
+                                  color: AppColors.surfaceElevated,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: const Color(0xFF7C4DFF)),
+                                  border: Border.all(color: AppColors.border),
                                 ),
                                 child: const Icon(
-                                  Icons.psychology_rounded,
-                                  color: Color(0xFFFFD700),
-                                  size: 28,
+                                  Icons.psychology_outlined,
+                                  color: AppColors.textPrimary,
+                                  size: 22,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 14),
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(4),
                             child: LinearProgressIndicator(
                               value: _predictabilityIndex / 100.0,
-                              backgroundColor: const Color(0xFF262040),
-                              valueColor: const AlwaysStoppedAnimation(Color(0xFF7C4DFF)),
-                              minHeight: 8,
+                              backgroundColor: AppColors.surfaceElevated,
+                              valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                              minHeight: 4,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           Text(
                             'Logged ${_formatMins(_productiveMinutesToday)} productive time today. Modeled 100% on-device by your local decision tree.',
                             style: const TextStyle(
-                              color: Color(0xFF9E9EAF),
-                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                              fontSize: 11,
                             ),
                           ),
                         ],
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // Peak Distraction Time Card
                     const Text(
-                      'Habit Analysis & Patterns',
+                      'TEMPORAL RISK ANALYSIS',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.1,
+                        color: AppColors.textSecondary,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
 
                     Container(
-                      padding: const EdgeInsets.all(18),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF181827),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFF2B2B44)),
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFF2A55).withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
+                              color: AppColors.distractingContainer,
+                              borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
-                              Icons.access_time_filled_rounded,
-                              color: Color(0xFFFF2A55),
-                              size: 24,
+                              Icons.access_time_rounded,
+                              color: AppColors.distracting,
+                              size: 20,
                             ),
                           ),
                           const SizedBox(width: 14),
@@ -224,19 +215,19 @@ class _InsightsScreenState extends State<InsightsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'Peak Distraction Hours',
+                                  'Peak Distraction Window',
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 2),
                                 Text(
-                                  'Highest distraction risk window: $_peakDistractionWindow',
+                                  'Elevated vulnerability: $_peakDistractionWindow',
                                   style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF8E8EA2),
+                                    fontSize: 11,
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                               ],
@@ -246,26 +237,27 @@ class _InsightsScreenState extends State<InsightsScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // Smart AI Recommendations Cards
                     const Text(
-                      'AI Behavioral Directives',
+                      'AI BEHAVIORAL DIRECTIVES',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.1,
+                        color: AppColors.textSecondary,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
 
                     _buildRecommendationCard(
-                      icon: Icons.bedtime_rounded,
-                      title: 'Set Nighttime Quiet Hours',
+                      icon: Icons.bedtime_outlined,
+                      title: 'Nighttime Quiet Hours',
                       description:
-                          'Frequent usage of social apps detected late at night. Mute distraction alerts from 10:00 PM to 7:00 AM.',
-                      actionLabel: 'Configure Quiet Hours',
-                      color: const Color(0xFF7C4DFF),
+                          'Social app usage detected in evening slots. Suppress non-essential notifications from 10:00 PM to 7:00 AM.',
+                      actionLabel: 'Configure',
+                      color: AppColors.primary,
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -274,15 +266,15 @@ class _InsightsScreenState extends State<InsightsScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
 
                     _buildRecommendationCard(
-                      icon: Icons.timer_rounded,
-                      title: 'Start a Deep Focus Session',
+                      icon: Icons.timer_outlined,
+                      title: 'Deep Focus Sprint',
                       description:
-                          'Boost your productivity score by completing a 25-minute Pomodoro session now.',
-                      actionLabel: 'Start 25m Focus Session',
-                      color: const Color(0xFF00E676),
+                          'Calibrate your attention baseline by initiating an uninterrupted 25-minute focus session.',
+                      actionLabel: 'Begin Session',
+                      color: AppColors.productive,
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -292,50 +284,51 @@ class _InsightsScreenState extends State<InsightsScreen> {
                       },
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
                     // Achievements & Badges Section
                     const Text(
-                      'Routine Achievements',
+                      'CONSISTENCY MILESTONES',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.1,
+                        color: AppColors.textSecondary,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
 
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF181827),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFF2B2B44)),
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: Column(
                         children: [
                           _buildAchievementTile(
-                            icon: Icons.star_rounded,
-                            title: 'Streak Master',
+                            icon: Icons.bolt_rounded,
+                            title: 'Streak Calibration',
                             subtitle: '3+ consecutive productive days',
                             isUnlocked: _streakDays >= 3,
-                            badgeColor: const Color(0xFFFFB300),
+                            badgeColor: AppColors.fire,
                           ),
-                          const Divider(color: Color(0xFF26263A), height: 20),
+                          const Divider(color: AppColors.border, height: 16),
                           _buildAchievementTile(
-                            icon: Icons.check_circle_rounded,
-                            title: 'Deep Work Champion',
+                            icon: Icons.check_circle_outline,
+                            title: 'Deep Work Protocol',
                             subtitle: '5+ completed focus sessions',
                             isUnlocked: _completedFocusSessionsCount >= 5,
-                            badgeColor: const Color(0xFF00E676),
+                            badgeColor: AppColors.productive,
                           ),
-                          const Divider(color: Color(0xFF26263A), height: 20),
+                          const Divider(color: AppColors.border, height: 16),
                           _buildAchievementTile(
-                            icon: Icons.shield_rounded,
-                            title: 'Distraction Slayer',
+                            icon: Icons.shield_outlined,
+                            title: 'Impulse Suppression',
                             subtitle: 'Under 45m distracting time today',
                             isUnlocked: _distractingMinutesToday < 45,
-                            badgeColor: const Color(0xFF7C4DFF),
+                            badgeColor: AppColors.textPrimary,
                           ),
                         ],
                       ),
@@ -358,56 +351,57 @@ class _InsightsScreenState extends State<InsightsScreen> {
     required VoidCallback onTap,
   }) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF181827),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF2B2B44)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: color, size: 22),
+              Icon(icon, color: AppColors.textPrimary, size: 20),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.1,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             description,
             style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF8E8EA2),
+              fontSize: 12,
+              color: AppColors.textSecondary,
               height: 1.4,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Align(
             alignment: Alignment.centerRight,
             child: OutlinedButton(
               onPressed: onTap,
               style: OutlinedButton.styleFrom(
-                foregroundColor: color,
-                side: BorderSide(color: color),
+                foregroundColor: AppColors.textPrimary,
+                side: const BorderSide(color: AppColors.border),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(8)),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               ),
               child: Text(
                 actionLabel,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
               ),
             ),
           ),
@@ -423,64 +417,67 @@ class _InsightsScreenState extends State<InsightsScreen> {
     required bool isUnlocked,
     required Color badgeColor,
   }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: isUnlocked
-                ? badgeColor.withValues(alpha: 0.15)
-                : const Color(0xFF222234),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            color: isUnlocked ? badgeColor : const Color(0xFF5A5A70),
-            size: 22,
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: isUnlocked ? Colors.white : const Color(0xFF6E6E82),
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF8E8EA2),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: isUnlocked
-                ? const Color(0xFF00E676).withValues(alpha: 0.15)
-                : const Color(0xFF222234),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            isUnlocked ? 'EARNED' : 'LOCKED',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: isUnlocked ? const Color(0xFF00E676) : const Color(0xFF6E6E82),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isUnlocked
+                  ? AppColors.surfaceElevated
+                  : AppColors.surfaceVariant,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: isUnlocked ? badgeColor : AppColors.textDisabled,
+              size: 18,
             ),
           ),
-        ),
-      ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isUnlocked ? AppColors.textPrimary : AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: isUnlocked
+                  ? AppColors.productiveContainer
+                  : AppColors.surfaceVariant,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              isUnlocked ? 'EARNED' : 'LOCKED',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: isUnlocked ? AppColors.productive : AppColors.textDisabled,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

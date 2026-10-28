@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/constants/app_colors.dart';
 
 class ChunkyButton extends StatefulWidget {
   final String text;
@@ -20,8 +21,8 @@ class ChunkyButton extends StatefulWidget {
     this.color,
     this.textColor,
     this.gradient,
-    this.height = 54,
-    this.borderRadius = 20,
+    this.height = 48,
+    this.borderRadius = 12,
     this.isSecondary = false,
   });
 
@@ -39,9 +40,9 @@ class _ChunkyButtonState extends State<ChunkyButton>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 90),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
@@ -54,7 +55,7 @@ class _ChunkyButtonState extends State<ChunkyButton>
 
   void _onTapDown(TapDownDetails _) {
     if (widget.onPressed == null) return;
-    HapticFeedback.lightImpact();
+    HapticFeedback.selectionClick();
     _controller.forward();
   }
 
@@ -70,55 +71,52 @@ class _ChunkyButtonState extends State<ChunkyButton>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final disableMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+
+    final isEnabled = widget.onPressed != null;
+    final baseBg = widget.isSecondary
+        ? AppColors.surfaceElevated
+        : (widget.color ?? AppColors.primary);
+    final effectiveBg = isEnabled ? baseBg : AppColors.surfaceVariant;
+
+    final defaultText = widget.isSecondary
+        ? AppColors.textPrimary
+        : (widget.color != null ? Colors.white : AppColors.onPrimary);
+    final effectiveTextColor = widget.textColor ?? (isEnabled ? defaultText : AppColors.textDisabled);
 
     Widget child = Container(
       height: widget.height,
       decoration: BoxDecoration(
-        color: widget.gradient == null
-            ? (widget.color ??
-                (widget.isSecondary
-                    ? const Color(0xFF232338)
-                    : theme.colorScheme.primary))
-            : null,
+        color: widget.gradient == null ? effectiveBg : null,
         gradient: widget.gradient != null
             ? LinearGradient(colors: widget.gradient!)
             : null,
         borderRadius: BorderRadius.circular(widget.borderRadius),
-        border: widget.isSecondary
-            ? Border.all(color: const Color(0xFF383854), width: 1.5)
-            : null,
-        boxShadow: widget.isSecondary || widget.onPressed == null
-            ? null
-            : [
-                BoxShadow(
-                  color: (widget.color ?? theme.colorScheme.primary)
-                      .withValues(alpha: 0.3),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
+        border: Border.all(
+          color: widget.isSecondary ? AppColors.border : AppColors.borderLight.withValues(alpha: 0.4),
+          width: 1.0,
+        ),
       ),
       child: Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             if (widget.icon != null) ...[
               Icon(
                 widget.icon,
-                color: widget.textColor ?? Colors.white,
-                size: 20,
+                color: effectiveTextColor,
+                size: 18,
               ),
               const SizedBox(width: 8),
             ],
             Text(
               widget.text,
               style: TextStyle(
-                color: widget.textColor ?? Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-                letterSpacing: 0.3,
+                color: effectiveTextColor,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                letterSpacing: -0.1,
               ),
             ),
           ],
@@ -126,7 +124,7 @@ class _ChunkyButtonState extends State<ChunkyButton>
       ),
     );
 
-    if (disableMotion) {
+    if (disableMotion || !isEnabled) {
       return GestureDetector(
         onTap: widget.onPressed,
         child: child,
@@ -144,4 +142,3 @@ class _ChunkyButtonState extends State<ChunkyButton>
     );
   }
 }
-

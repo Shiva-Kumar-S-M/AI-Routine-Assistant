@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import '../../core/constants/app_colors.dart';
 
 typedef DayTapCallback = void Function(DateTime day);
 
@@ -34,11 +35,11 @@ class _TrendChartState extends State<TrendChart> {
   Widget build(BuildContext context) {
     if (_data.isEmpty) {
       return Container(
-        height: 180,
+        height: 160,
         alignment: Alignment.center,
         child: const Text(
           'No 7-day trend data available yet',
-          style: TextStyle(color: Color(0xFF8E8EA2), fontSize: 13),
+          style: TextStyle(color: AppColors.textDisabled, fontSize: 13),
         ),
       );
     }
@@ -59,10 +60,9 @@ class _TrendChartState extends State<TrendChart> {
           LineChartData(
             gridData: FlGridData(
               show: true,
+              drawVerticalLine: false,
               getDrawingHorizontalLine: (_) =>
-                  const FlLine(color: Color(0xFF26263A), strokeWidth: 1),
-              getDrawingVerticalLine: (_) =>
-                  const FlLine(color: Color(0xFF26263A), strokeWidth: 1),
+                  const FlLine(color: AppColors.border, strokeWidth: 1),
             ),
             titlesData: FlTitlesData(
               rightTitles:
@@ -78,17 +78,17 @@ class _TrendChartState extends State<TrendChart> {
                       final isHighlighted = _activeDay != null &&
                           _sameDay(entries[index].key, _activeDay!);
                       return Padding(
-                        padding: const EdgeInsets.only(top: 6.0),
+                        padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
                           DateFormat('E').format(entries[index].key),
                           style: TextStyle(
                             color: isHighlighted
-                                ? const Color(0xFF00E5FF)
-                                : const Color(0xFF8E8EA2),
+                                ? AppColors.textPrimary
+                                : AppColors.textSecondary,
                             fontSize: 11,
                             fontWeight: isHighlighted
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+                                ? FontWeight.w600
+                                : FontWeight.w400,
                           ),
                         ),
                       );
@@ -100,12 +100,12 @@ class _TrendChartState extends State<TrendChart> {
               leftTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
-                  reservedSize: 32,
+                  reservedSize: 30,
                   getTitlesWidget: (value, meta) => Text(
                     '${value.toInt()}h',
                     style: const TextStyle(
-                      color: Color(0xFF8E8EA2),
-                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                      fontSize: 10,
                     ),
                   ),
                 ),
@@ -129,11 +129,11 @@ class _TrendChartState extends State<TrendChart> {
                   if (idx < entries.length) {
                     final h = (entries[idx].value / 3600).toStringAsFixed(1);
                     return LineTooltipItem(
-                      '${DateFormat('EEE').format(entries[idx].key)}\n${h}h',
+                      '${DateFormat('EEE, MMM d').format(entries[idx].key)}\n${h}h screen time',
                       const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                       ),
                     );
                   }
@@ -146,10 +146,9 @@ class _TrendChartState extends State<TrendChart> {
               LineChartBarData(
                 spots: spots,
                 isCurved: true,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF7C4DFF), Color(0xFF00E5FF)],
-                ),
-                barWidth: 3.5,
+                curveSmoothness: 0.3,
+                color: AppColors.primary,
+                barWidth: 2.2,
                 dotData: FlDotData(
                   show: true,
                   getDotPainter: (spot, percent, barData, index) {
@@ -158,12 +157,12 @@ class _TrendChartState extends State<TrendChart> {
                             index < entries.length &&
                             _sameDay(entries[index].key, _activeDay!));
                     return FlDotCirclePainter(
-                      radius: isHighlighted ? 7 : 4,
+                      radius: isHighlighted ? 5 : 3,
                       color: isHighlighted
-                          ? const Color(0xFF00E5FF)
-                          : const Color(0xFF7C4DFF),
-                      strokeWidth: isHighlighted ? 3 : 0,
-                      strokeColor: Colors.white,
+                          ? AppColors.primary
+                          : AppColors.surfaceRaised,
+                      strokeWidth: isHighlighted ? 2 : 1,
+                      strokeColor: isHighlighted ? AppColors.textPrimary : AppColors.border,
                     );
                   },
                 ),
@@ -171,8 +170,8 @@ class _TrendChartState extends State<TrendChart> {
                   show: true,
                   gradient: LinearGradient(
                     colors: [
-                      const Color(0xFF7C4DFF).withValues(alpha: 0.3),
-                      const Color(0xFF00E5FF).withValues(alpha: 0.0),
+                      AppColors.primary.withValues(alpha: 0.12),
+                      AppColors.primary.withValues(alpha: 0.0),
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
