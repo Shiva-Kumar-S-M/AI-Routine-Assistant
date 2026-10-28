@@ -59,18 +59,25 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: AppColors.background,
-        title: const Text(
-          'BRAIN GYM',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.2,
-          ),
+        centerTitle: false,
+        title: const Row(
+          children: [
+            Icon(Icons.extension_outlined, color: AppColors.textPrimary, size: 20),
+            SizedBox(width: 8),
+            Text(
+              'BRAIN GYM',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.1,
+              ),
+            ),
+          ],
         ),
         actions: [
           Container(
-            margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: AppColors.surfaceRaised,
@@ -100,13 +107,10 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadData,
-        color: AppColors.primary,
-        backgroundColor: AppColors.surface,
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildRatingCard(),
             const SizedBox(height: 16),
@@ -189,13 +193,17 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
               children: [
                 Row(
                   children: [
-                    Text(
-                      _profile.skillTier.toUpperCase(),
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
-                        letterSpacing: 1.1,
+                    Flexible(
+                      child: Text(
+                        _profile.skillTier.toUpperCase(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                          letterSpacing: 1.1,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -333,14 +341,17 @@ class _BrainGymHubScreenState extends State<BrainGymHubScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                       if (bestScore != null)

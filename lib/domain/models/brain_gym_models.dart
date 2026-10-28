@@ -116,14 +116,16 @@ class BrainGymScore {
 
   factory BrainGymScore.fromMap(Map<String, dynamic> map) {
     return BrainGymScore(
-      id: map['id'] as int?,
-      gameMode: map['game_mode'] as String,
-      score: (map['score'] as num).toInt(),
-      accuracyPercent: (map['accuracy_percent'] as num).toDouble(),
-      totalQuestions: (map['total_questions'] as num).toInt(),
-      correctAnswers: (map['correct_answers'] as num).toInt(),
-      maxCombo: (map['max_combo'] as num).toInt(),
-      timestamp: DateTime.fromMillisecondsSinceEpoch((map['timestamp'] as num).toInt()),
+      id: (map['id'] as num?)?.toInt(),
+      gameMode: map['game_mode'] as String? ?? 'math_sprint',
+      score: (map['score'] as num?)?.toInt() ?? 0,
+      accuracyPercent: (map['accuracy_percent'] as num?)?.toDouble() ?? 0.0,
+      totalQuestions: (map['total_questions'] as num?)?.toInt() ?? 0,
+      correctAnswers: (map['correct_answers'] as num?)?.toInt() ?? 0,
+      maxCombo: (map['max_combo'] as num?)?.toInt() ?? 0,
+      timestamp: DateTime.fromMillisecondsSinceEpoch(
+        (map['timestamp'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
+      ),
       isDailyChallenge: (map['is_daily_challenge'] as num?)?.toInt() == 1,
     );
   }
