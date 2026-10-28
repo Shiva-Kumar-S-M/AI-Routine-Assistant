@@ -2,7 +2,7 @@ name: ai_routine_assistant
 description: "A privacy-first, on-device AI routine assistant and screen-time manager."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.2+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
