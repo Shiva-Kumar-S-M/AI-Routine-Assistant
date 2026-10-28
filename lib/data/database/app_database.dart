@@ -20,7 +20,7 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -127,6 +127,9 @@ class AppDatabase {
 
     // Stage 3: Brain Gym Tables
     await _createBrainGymTables(db);
+
+    // Stage C: 80% Early-Warning Psychological Nudge Table
+    await _createEarlyWarningTables(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -143,6 +146,27 @@ class AppDatabase {
     if (oldVersion < 3) {
       await _createBrainGymTables(db);
     }
+    if (oldVersion < 4) {
+      await _createEarlyWarningTables(db);
+    }
+  }
+
+  Future<void> _createEarlyWarningTables(Database db) async {
+    // 14. early_warning_notifications table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS early_warning_notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        package_name TEXT NOT NULL,
+        date_str TEXT NOT NULL,
+        used_minutes INTEGER NOT NULL,
+        limit_minutes INTEGER NOT NULL,
+        hook_type TEXT NOT NULL,
+        hook_message TEXT NOT NULL,
+        action_taken TEXT,
+        timestamp INTEGER NOT NULL,
+        UNIQUE(package_name, date_str)
+      )
+    ''');
   }
 
   Future<void> _createJourneyTables(Database db) async {

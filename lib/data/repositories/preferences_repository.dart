@@ -61,6 +61,14 @@ class PreferencesRepository {
   Future<void> setMaxAlertsPerDay(int count) =>
       _set('max_alerts_day', count.toString());
 
+  // ── Early Warning Threshold Pct (default 80%) ───────────────────────────────
+
+  Future<int> getEarlyWarningThresholdPct() async =>
+      int.tryParse(await _get('early_warning_threshold_pct') ?? '80') ?? 80;
+
+  Future<void> setEarlyWarningThresholdPct(int pct) =>
+      _set('early_warning_threshold_pct', pct.toString());
+
   // ── Weekly Summary Opt-in ────────────────────────────────────────────────────
 
   Future<bool> isWeeklySummaryEnabled() async =>

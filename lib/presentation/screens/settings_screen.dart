@@ -38,6 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   bool _muteDistraction = false;
   bool _muteRoutine = false;
   int _maxAlerts = 20;
+  int _earlyWarningPct = 80;
   bool _weeklySummary = false;
   RetentionOption _retentionOption = RetentionOption.days90;
 
@@ -74,6 +75,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     final md = await _prefs.isDistractionMuted();
     final mr = await _prefs.isRoutineMuted();
     final ma = await _prefs.getMaxAlertsPerDay();
+    final ew = await _prefs.getEarlyWarningThresholdPct();
     final ws = await _prefs.isWeeklySummaryEnabled();
     final ro = await _retentionPolicy.getCurrentOption();
     if (mounted) {
@@ -83,6 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         _muteDistraction = md;
         _muteRoutine = mr;
         _maxAlerts = ma;
+        _earlyWarningPct = ew;
         _weeklySummary = ws;
         _retentionOption = ro;
         _isLoadingPrefs = false;
@@ -497,6 +500,46 @@ class _SettingsScreenState extends State<SettingsScreen>
                             setState(() => _maxAlerts = v.toInt()),
                         onChangeEnd: (v) async {
                           await _prefs.setMaxAlertsPerDay(v.toInt());
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(color: Color(0xFF26263A), height: 1),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.notifications_active_outlined,
+                        color: Color(0xFF00E5FF), size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Early Warning Threshold',
+                              style: TextStyle(
+                                  color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                          Text('$_earlyWarningPct% of limit (nudge before overlay)',
+                              style: const TextStyle(
+                                  color: Color(0xFF8E8EA2), fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      width: 130,
+                      child: Slider(
+                        value: _earlyWarningPct.toDouble(),
+                        min: 50,
+                        max: 95,
+                        divisions: 9,
+                        activeColor: const Color(0xFF00E5FF),
+                        onChanged: (v) =>
+                            setState(() => _earlyWarningPct = v.toInt()),
+                        onChangeEnd: (v) async {
+                          await _prefs.setEarlyWarningThresholdPct(v.toInt());
                         },
                       ),
                     ),

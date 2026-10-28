@@ -43,6 +43,14 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".EarlyWarningActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.ai_routine_assistant.ACTION_BACK_TO_WORK" />
+                <action android:name="com.example.ai_routine_assistant.ACTION_SNOOZE_NUDGE" />
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:exported="true"

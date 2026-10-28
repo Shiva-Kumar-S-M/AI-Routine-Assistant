@@ -3,6 +3,7 @@ package com.example.ai_routine_assistant
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
@@ -28,7 +29,11 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
 
 /**
@@ -49,16 +54,22 @@ class UsageMonitorService : Service() {
 
     // Guards and state tracking
     private val shownForSession = mutableSetOf<String>()
-    private val packageSnoozeUntil = mutableMapOf<String, Long>()
 
     companion object {
         @Volatile
         var isServiceRunning = false
             private set
 
+        private val packageSnoozeUntil = ConcurrentHashMap<String, Long>()
+
+        fun snoozePackage(pkg: String, until: Long) {
+            packageSnoozeUntil[pkg] = until
+        }
+
         private const val POLL_INTERVAL_MS = 2000L
         private const val SERVICE_NOTIFICATION_ID = 991
         private const val NOTIFICATION_CHANNEL_ID = "monitoring_channel"
+        private const val FOCUS_NUDGES_CHANNEL_ID = "focus_nudges_channel"
         private const val SNOOZE_DURATION_MS = 15 * 60 * 1000L // 15 minutes
 
         private val HOOK_TEMPLATES = listOf(
@@ -67,6 +78,35 @@ class UsageMonitorService : Service() {
             "streak" to "You've built discipline today with a %d-day streak. Don't let an impulse session break your momentum.",
             "goal" to "Every minute spent scrolling %s is borrowed from what truly matters to you today.",
             "social_proof" to "High achievers ruthlessly guard their focus. Reclaim your time right now."
+        )
+
+        private var lastWarningHookIndex = -1
+
+        private val EARLY_WARNING_HOOKS = listOf(
+            "loss" to { app: String, _: Int, left: Int, _: Int ->
+                "$left minutes left on $app. Spend them like they matter."
+            },
+            "future_self" to { app: String, _: Int, left: Int, _: Int ->
+                "Future you is watching what you do in the next $left minutes on $app."
+            },
+            "goal" to { app: String, used: Int, _: Int, limit: Int ->
+                "You've used $used of $limit mins on $app. Protect your remaining focus for what really matters."
+            },
+            "momentum" to { app: String, _: Int, left: Int, _: Int ->
+                "You've held your focus all day. Don't trade it for $left more minutes of scrolling on $app."
+            },
+            "loss_urgency" to { app: String, _: Int, left: Int, _: Int ->
+                "Only $left minutes remaining today on $app. When it runs out, the barrier drops."
+            },
+            "future_discipline" to { app: String, _: Int, left: Int, _: Int ->
+                "Will spending your final $left minutes on $app move you closer to who you want to be?"
+            },
+            "momentum_streak" to { app: String, used: Int, _: Int, _: Int ->
+                "You're at $used mins on $app. Pause now and keep your streak safe."
+            },
+            "high_achiever" to { app: String, _: Int, left: Int, _: Int ->
+                "High achievers ruthlessly guard their focus. Wrap up $app with $left minutes to spare."
+            }
         )
     }
 
@@ -249,6 +289,20 @@ class UsageMonitorService : Service() {
                 if (hasOverlayPermission()) {
                     shownForSession.add(pkg)
                     showFullScreenOverlay(pkg, appName, usedMins, limitMins, streak, hookPair)
+                }
+            } else {
+                // Check early warning threshold (default 80%)
+                val thresholdPct = queryString(
+                    db,
+                    "SELECT value FROM preferences WHERE key = 'early_warning_threshold_pct'",
+                    emptyArray()
+                )?.toIntOrNull() ?: 80
+
+                // Limits under 5 minutes: rounded down
+                val warningMins = Math.max(1, (limitMins * thresholdPct) / 100)
+                if (usedMins >= warningMins) {
+                    val appName = UsageStatsHelper.getAppLabel(this, pkg)
+                    checkAndSendEarlyWarningNotification(db, pkg, appName, usedMins, limitMins)
                 }
             }
         } catch (_: Exception) {
@@ -632,6 +686,182 @@ class UsageMonitorService : Service() {
             Random.nextBoolean() -> HOOK_TEMPLATES.first { it.first == "goal" }
             else -> HOOK_TEMPLATES.first { it.first == "social_proof" }
         }
+    }
+
+    private fun queryInt(db: SQLiteDatabase, sql: String, args: Array<String>): Int {
+        return db.rawQuery(sql, args).use { if (it.moveToFirst()) it.getInt(0) else 0 }
+    }
+
+    private fun selectRotatingEarlyWarningHook(
+        appName: String,
+        usedMins: Int,
+        minutesLeft: Int,
+        limitMins: Int
+    ): Pair<String, String> {
+        val eligible = EARLY_WARNING_HOOKS.indices.filter { it != lastWarningHookIndex }
+        val chosenIndex = if (eligible.isNotEmpty()) eligible.random() else 0
+        lastWarningHookIndex = chosenIndex
+        val hookPair = EARLY_WARNING_HOOKS[chosenIndex]
+        val message = hookPair.second(appName, usedMins, minutesLeft, limitMins)
+        return Pair(hookPair.first, message)
+    }
+
+    private fun checkAndSendEarlyWarningNotification(
+        db: SQLiteDatabase,
+        pkg: String,
+        appName: String,
+        usedMins: Int,
+        limitMins: Int
+    ) {
+        // 1. Check if snooze is active
+        val snoozeUntil = packageSnoozeUntil[pkg] ?: 0L
+        if (System.currentTimeMillis() < snoozeUntil) return
+
+        // 2. Check mute distraction toggle
+        val muteDistraction = queryString(db, "SELECT value FROM preferences WHERE key = 'mute_distraction'", emptyArray()) == "true"
+        if (muteDistraction) return
+
+        // 3. Check quiet hours
+        val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val quietStart = queryString(db, "SELECT value FROM preferences WHERE key = 'quiet_hours_start'", emptyArray())?.toIntOrNull() ?: 22
+        val quietEnd = queryString(db, "SELECT value FROM preferences WHERE key = 'quiet_hours_end'", emptyArray())?.toIntOrNull() ?: 7
+        val inQuietHours = if (quietStart > quietEnd) {
+            currentHour >= quietStart || currentHour < quietEnd
+        } else {
+            currentHour in quietStart until quietEnd
+        }
+        if (inQuietHours) return
+
+        // 4. Check daily alert cap
+        val maxAlerts = queryString(db, "SELECT value FROM preferences WHERE key = 'max_alerts_day'", emptyArray())?.toIntOrNull() ?: 20
+        val todayStart = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        val todayAlerts = queryInt(
+            db,
+            "SELECT COUNT(*) FROM notifications_log WHERE timestamp >= ?",
+            arrayOf(todayStart.toString())
+        ) + queryInt(
+            db,
+            "SELECT COUNT(*) FROM early_warning_notifications WHERE timestamp >= ?",
+            arrayOf(todayStart.toString())
+        )
+        if (todayAlerts >= maxAlerts) return
+
+        // 5. Check deduplication for today
+        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val alreadySent = queryInt(
+            db,
+            "SELECT COUNT(*) FROM early_warning_notifications WHERE package_name = ? AND date_str = ?",
+            arrayOf(pkg, todayStr)
+        ) > 0
+        if (alreadySent) return
+
+        // 6. Select hook without repeating last hook
+        val minutesLeft = Math.max(1, limitMins - usedMins)
+        val hook = selectRotatingEarlyWarningHook(appName, usedMins, minutesLeft, limitMins)
+
+        // 7. Store in SQLite table to deduplicate
+        val cv = ContentValues().apply {
+            put("package_name", pkg)
+            put("date_str", todayStr)
+            put("used_minutes", usedMins)
+            put("limit_minutes", limitMins)
+            put("hook_type", hook.first)
+            put("hook_message", hook.second)
+            put("timestamp", System.currentTimeMillis())
+        }
+        db.insertWithOnConflict("early_warning_notifications", null, cv, SQLiteDatabase.CONFLICT_IGNORE)
+
+        // 8. Post notification to channel "Focus nudges"
+        sendEarlyWarningNotification(pkg, appName, usedMins, limitMins, hook.second)
+    }
+
+    private fun sendEarlyWarningNotification(
+        pkg: String,
+        appName: String,
+        usedMins: Int,
+        limitMins: Int,
+        message: String
+    ) {
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                FOCUS_NUDGES_CHANNEL_ID,
+                "Focus nudges",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Early-warning psychological nudges when approaching app limits"
+                enableLights(true)
+                enableVibration(true)
+                setShowBadge(true)
+            }
+            nm.createNotificationChannel(channel)
+        }
+
+        val notificationId = Math.abs(pkg.hashCode())
+
+        val backIntent = Intent(this, EarlyWarningActionReceiver::class.java).apply {
+            action = "com.example.ai_routine_assistant.ACTION_BACK_TO_WORK"
+            putExtra("package_name", pkg)
+            putExtra("notification_id", notificationId)
+            putExtra("used_minutes", usedMins)
+            putExtra("limit_minutes", limitMins)
+        }
+        val backPendingIntent = PendingIntent.getBroadcast(
+            this,
+            notificationId * 2 + 1,
+            backIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val snoozeIntent = Intent(this, EarlyWarningActionReceiver::class.java).apply {
+            action = "com.example.ai_routine_assistant.ACTION_SNOOZE_NUDGE"
+            putExtra("package_name", pkg)
+            putExtra("notification_id", notificationId)
+        }
+        val snoozePendingIntent = PendingIntent.getBroadcast(
+            this,
+            notificationId * 2 + 2,
+            snoozeIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val backAction = Notification.Action.Builder(
+            null,
+            "Back to work",
+            backPendingIntent
+        ).build()
+
+        val snoozeAction = Notification.Action.Builder(
+            null,
+            "Snooze 15 min",
+            snoozePendingIntent
+        ).build()
+
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this, FOCUS_NUDGES_CHANNEL_ID)
+        } else {
+            @Suppress("DEPRECATION")
+            Notification.Builder(this)
+        }
+
+        val notification = builder
+            .setContentTitle("$appName limit approaching")
+            .setContentText(message)
+            .setStyle(Notification.BigTextStyle().bigText(message))
+            .setSmallIcon(android.R.drawable.stat_notify_chat)
+            .setAutoCancel(true)
+            .addAction(backAction)
+            .addAction(snoozeAction)
+            .build()
+
+        nm.notify(notificationId, notification)
     }
 
     private fun dpToPx(dp: Int): Int {
