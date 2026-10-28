@@ -274,11 +274,5 @@ class UsageRepository implements UsageRepositoryInterface {
     );
     return Sqflite.firstIntValue(result) ?? 0;
   }
-
-  /// Scaffold Feature: Insert post-session emotional check-in log
-  Future<void> insertEmotionalLog(dynamic log) async {
-    final db = await _dbProvider.database;
-    await db.insert('emotional_logs', log.toMap());
-  }
 }
 
