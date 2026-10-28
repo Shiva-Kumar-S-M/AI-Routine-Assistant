@@ -173,14 +173,74 @@ object UsageStatsHelper {
         return resultList
     }
 
+    private val KNOWN_APP_NAMES = mapOf(
+        "com.android.chrome" to "Chrome",
+        "com.google.android.youtube" to "YouTube",
+        "com.instagram.android" to "Instagram",
+        "com.zhiliaoapp.musically" to "TikTok",
+        "com.facebook.katana" to "Facebook",
+        "com.twitter.android" to "X (Twitter)",
+        "com.snapchat.android" to "Snapchat",
+        "com.netflix.mediaclient" to "Netflix",
+        "com.reddit.frontpage" to "Reddit",
+        "com.pinterest" to "Pinterest",
+        "com.google.android.apps.docs" to "Google Docs",
+        "com.google.android.gm" to "Gmail",
+        "com.microsoft.office.word" to "Microsoft Word",
+        "com.microsoft.office.excel" to "Microsoft Excel",
+        "com.duolingo" to "Duolingo",
+        "org.wikipedia" to "Wikipedia",
+        "com.notion.id" to "Notion",
+        "com.todoist" to "Todoist",
+        "com.slack" to "Slack",
+        "com.google.android.dialer" to "Phone",
+        "com.google.android.apps.maps" to "Google Maps",
+        "com.whatsapp" to "WhatsApp",
+        "org.telegram.messenger" to "Telegram",
+        "com.spotify.music" to "Spotify",
+        "com.instagram.barcelona" to "Threads",
+        "threads.net" to "Threads"
+    )
+
+    fun cleanPackageName(packageName: String): String {
+        if (packageName.isBlank()) return packageName
+        val known = KNOWN_APP_NAMES[packageName]
+        if (known != null) return known
+
+        val noisePrefixes = setOf("com", "org", "net", "io", "co", "edu", "gov", "in", "uk", "de", "fr", "jp", "cn")
+        val noiseWords = setOf(
+            "android", "app", "apps", "mobile", "client", "ui", "internal", "release",
+            "music", "audio", "video", "news", "reader", "service", "services", "lite"
+        )
+
+        val parts = packageName.split(".").filter { it.isNotBlank() }
+        val filtered = parts.filterIndexed { index, part ->
+            val isTld = (index == 0 || index == parts.size - 1) && noisePrefixes.contains(part.lowercase())
+            !(parts.size > 1 && isTld) && !noiseWords.contains(part.lowercase())
+        }
+
+        val target = if (filtered.isNotEmpty()) {
+            filtered.last()
+        } else if (parts.isNotEmpty()) {
+            parts.last()
+        } else {
+            packageName
+        }
+
+        val words = target.replace("_", " ").replace("-", " ").split(" ")
+        return words.joinToString(" ") { word ->
+            word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        }.ifBlank { packageName }
+    }
+
     fun getAppLabel(context: Context, packageName: String): String {
         return try {
             val pm = context.packageManager
             val ai = pm.getApplicationInfo(packageName, 0)
             val label = pm.getApplicationLabel(ai).toString().trim()
-            if (label.isNotEmpty()) label else packageName
+            if (label.isNotEmpty() && label != packageName) label else cleanPackageName(packageName)
         } catch (_: Exception) {
-            packageName
+            cleanPackageName(packageName)
         }
     }
 

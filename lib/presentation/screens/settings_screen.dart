@@ -8,6 +8,7 @@ import '../widgets/category_picker_dialog.dart';
 import '../widgets/app_limit_dialog.dart';
 import '../../services/security_service.dart';
 import '../../services/usage_collector_service.dart';
+import '../../services/app_label_helper.dart';
 import 'network_proof_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -58,6 +59,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Future<void> _loadCategories() async {
     setState(() => _isLoadingApps = true);
+    await AppLabelHelper.backfillAllStoredLabels();
     final list = await _categoryRepository.getAllCategories();
     if (mounted) {
       setState(() {
@@ -208,6 +210,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 showDialog(
                   context: context,
                   builder: (_) => CategoryPickerDialog(
+                    appName: item.appName,
                     currentCategory: item.category,
                     isCustom: item.isCustom,
                     onSelected: (newCat) => _updateCategory(item, newCat),
@@ -354,9 +357,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                                   ),
                                 ),
                                 subtitle: Text(
-                                  item.appName != item.packageName
-                                      ? '${item.packageName} · ${item.isCustom ? "Custom" : "Default"}'
-                                      : (item.isCustom ? 'Custom Override' : 'Default Preset'),
+                                  '${item.packageName} · ${item.isCustom ? "Custom" : "Default"}',
                                   style: const TextStyle(
                                     color: AppColors.textSecondary,
                                     fontSize: 11,

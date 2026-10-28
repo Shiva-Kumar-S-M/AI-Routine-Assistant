@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import '../database/app_database.dart';
 import 'category_repository.dart';
+import '../../services/app_label_helper.dart';
 import '../../domain/models/usage_log.dart';
 import '../../domain/models/routine_alert.dart';
 import '../../domain/repositories/usage_repository_interface.dart';
@@ -45,6 +46,7 @@ class UsageRepository implements UsageRepositoryInterface {
   /// in the table. Safe to call on every app launch — pure SQL, no MethodChannel.
   Future<void> backfillStaleAppNames() async {
     final db = await _dbProvider.database;
+    await AppLabelHelper.backfillAllStoredLabels();
     await db.execute(
       "UPDATE usage_logs "
       "SET app_name = COALESCE(("
@@ -192,6 +194,9 @@ class UsageRepository implements UsageRepositoryInterface {
     final endOfDay = startOfDay.add(const Duration(days: 1));
     final logs = await getLogsInWindow(startOfDay, endOfDay);
 
+    final pkgs = logs.map((l) => l.packageName).toSet().toList();
+    final labelMap = await AppLabelHelper.getAppLabels(pkgs);
+
     // Pre-fetch the best resolved name for every package from the full DB
     // (not just today's window) so stale rows never win over resolved ones.
     final db = await _dbProvider.database;
@@ -212,8 +217,12 @@ class UsageRepository implements UsageRepositoryInterface {
     final Map<String, Map<String, dynamic>> appUsage = {};
     for (final log in logs) {
       final pkg = log.packageName;
-      // Use the pre-fetched resolved name; fall back to log.appName, then pkg.
-      final displayName = bestNames[pkg] ?? log.appName;
+      final displayName = labelMap[pkg] ??
+          bestNames[pkg] ??
+          (log.appName.isNotEmpty && log.appName != pkg
+              ? log.appName
+              : AppLabelHelper.cleanPackageName(pkg));
+
       if (!appUsage.containsKey(pkg)) {
         appUsage[pkg] = {
           'packageName': pkg,

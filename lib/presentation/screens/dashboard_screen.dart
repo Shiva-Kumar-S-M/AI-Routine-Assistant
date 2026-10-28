@@ -18,6 +18,7 @@ import 'journey_screen.dart';
 import 'focus_session_screen.dart';
 import 'settings_screen.dart';
 import 'brain_gym/math_sprint_screen.dart';
+import '../../services/app_label_helper.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -934,7 +935,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             final app = entry.value;
                             final durationSecs = app['durationSeconds'] as int;
                             final pkgName = app['packageName'] as String;
-                            final appName = app['appName'] as String;
+                            final rawAppName = app['appName'] as String? ?? '';
+                            final appName = (rawAppName.isNotEmpty && rawAppName != pkgName)
+                                ? rawAppName
+                                : AppLabelHelper.cleanPackageName(pkgName);
                             final category = (app['category'] as String).toUpperCase();
 
                             return Column(

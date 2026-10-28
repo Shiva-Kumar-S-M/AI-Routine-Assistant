@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../domain/models/usage_log.dart';
 import '../data/repositories/usage_repository.dart';
 import '../data/repositories/category_repository.dart';
+import 'app_label_helper.dart';
 
 class UsageCollectorService {
   static const MethodChannel _channel =
@@ -228,9 +229,9 @@ class UsageCollectorService {
           if (pkg.isEmpty) continue;
 
           final rawAppName = map['appName']?.toString();
-          final appName = (rawAppName != null && rawAppName.isNotEmpty)
+          final appName = (rawAppName != null && rawAppName.isNotEmpty && rawAppName != pkg)
               ? rawAppName
-              : pkg;
+              : AppLabelHelper.cleanPackageName(pkg);
           final startTimeMs = (map['startTime'] as num?)?.toInt() ?? 0;
           final endTimeMs = (map['endTime'] as num?)?.toInt() ?? 0;
           final durationSec = (map['durationSeconds'] as num?)?.toInt() ?? 0;

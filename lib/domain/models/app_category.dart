@@ -14,6 +14,7 @@ class AppCategory {
   Map<String, dynamic> toMap() {
     return {
       'package_name': packageName,
+      'app_name': appName,
       'category': category,
       'is_custom': isCustom ? 1 : 0,
     };
@@ -21,9 +22,10 @@ class AppCategory {
 
   factory AppCategory.fromMap(Map<String, dynamic> map, {String? appName}) {
     final pkg = map['package_name'] as String;
+    final storedName = map['app_name'] as String?;
     return AppCategory(
       packageName: pkg,
-      appName: appName ?? pkg,
+      appName: appName ?? storedName ?? pkg,
       category: map['category'] as String,
       isCustom: (map['is_custom'] as int?) == 1,
     );

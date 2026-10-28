@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../data/repositories/preferences_repository.dart';
+import '../../services/app_label_helper.dart';
 
 class AppLimitDialog extends StatefulWidget {
   final String packageName;
@@ -42,6 +43,10 @@ class _AppLimitDialogState extends State<AppLimitDialog> {
 
   Future<void> _saveLimit(int? minutes) async {
     await _prefs.setAppLimitMinutes(widget.packageName, minutes);
+    final displayAppName = (widget.appName.isNotEmpty && widget.appName != widget.packageName)
+        ? widget.appName
+        : AppLabelHelper.cleanPackageName(widget.packageName);
+
     if (mounted) {
       widget.onLimitSaved?.call();
       Navigator.of(context).pop();
@@ -49,8 +54,8 @@ class _AppLimitDialogState extends State<AppLimitDialog> {
         SnackBar(
           content: Text(
             minutes == null || minutes <= 0
-                ? 'Removed limit for ${widget.appName}'
-                : 'Set daily limit of $minutes minutes for ${widget.appName}',
+                ? 'Removed limit for $displayAppName'
+                : 'Set daily limit of $minutes minutes for $displayAppName',
           ),
           backgroundColor: AppColors.primary,
         ),
@@ -60,6 +65,10 @@ class _AppLimitDialogState extends State<AppLimitDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final displayAppName = (widget.appName.isNotEmpty && widget.appName != widget.packageName)
+        ? widget.appName
+        : AppLabelHelper.cleanPackageName(widget.packageName);
+
     return AlertDialog(
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
@@ -80,7 +89,7 @@ class _AppLimitDialogState extends State<AppLimitDialog> {
           ),
           const SizedBox(height: 4),
           Text(
-            widget.appName,
+            displayAppName,
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12,

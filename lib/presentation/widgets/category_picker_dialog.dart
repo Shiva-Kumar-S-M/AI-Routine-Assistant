@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 
 class CategoryPickerDialog extends StatelessWidget {
+  final String? appName;
   final String currentCategory;
   final bool isCustom;
   final ValueChanged<String> onSelected;
@@ -9,6 +10,7 @@ class CategoryPickerDialog extends StatelessWidget {
 
   const CategoryPickerDialog({
     super.key,
+    this.appName,
     required this.currentCategory,
     required this.onSelected,
     this.isCustom = false,
@@ -24,14 +26,30 @@ class CategoryPickerDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: AppColors.border, width: 1.0),
       ),
-      title: const Text(
-        'SELECT APP CATEGORY',
-        style: TextStyle(
-          color: AppColors.textPrimary,
-          fontWeight: FontWeight.w600,
-          fontSize: 13,
-          letterSpacing: 1.2,
-        ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'SELECT APP CATEGORY',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              letterSpacing: 1.2,
+            ),
+          ),
+          if (appName != null && appName!.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              appName!,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ],
+        ],
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,

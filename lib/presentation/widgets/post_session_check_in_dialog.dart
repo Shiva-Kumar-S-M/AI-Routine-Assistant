@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/emotional_log.dart';
 import '../../data/repositories/usage_repository.dart';
+import '../../services/app_label_helper.dart';
 
 class PostSessionCheckInDialog extends StatelessWidget {
   final String packageName;
@@ -61,7 +62,7 @@ class PostSessionCheckInDialog extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Session Check-In: $appName',
+              'Session Check-In: ${(appName.isNotEmpty && appName != packageName) ? appName : AppLabelHelper.cleanPackageName(packageName)}',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),

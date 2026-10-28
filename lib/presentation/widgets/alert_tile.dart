@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/routine_alert.dart';
 import '../../core/constants/app_colors.dart';
+import '../../services/app_label_helper.dart';
 
 class AlertTile extends StatelessWidget {
   final RoutineAlert alert;
@@ -162,7 +163,7 @@ class AlertTile extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _detailRow(Icons.apps_outlined, 'Package', alert.packageName),
+            _detailRow(Icons.apps_outlined, 'App', AppLabelHelper.cleanPackageName(alert.packageName)),
             _detailRow(
               Icons.access_time_outlined,
               'Triggered at',

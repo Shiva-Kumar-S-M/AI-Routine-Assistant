@@ -27,6 +27,27 @@ class AppDatabase {
         // Ensure all tables and default rows exist across schema updates
         await _createBrainGymTables(db);
         await _createEarlyWarningTables(db);
+
+        // Ensure app_name column exists in app_categories
+        try {
+          await db.execute('ALTER TABLE app_categories ADD COLUMN app_name TEXT');
+        } catch (_) {}
+
+        // Backfill default human names for seeded apps
+        for (final entry in defaultAppNames.entries) {
+          await db.update(
+            'app_categories',
+            {'app_name': entry.value},
+            where: "package_name = ? AND (app_name IS NULL OR app_name = '' OR app_name = package_name)",
+            whereArgs: [entry.key],
+          );
+          await db.update(
+            'usage_logs',
+            {'app_name': entry.value},
+            where: "package_name = ? AND (app_name IS NULL OR app_name = '' OR app_name = package_name)",
+            whereArgs: [entry.key],
+          );
+        }
       },
     );
   }
@@ -53,6 +74,7 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE app_categories (
         package_name TEXT PRIMARY KEY,
+        app_name TEXT,
         category TEXT NOT NULL,
         is_custom INTEGER DEFAULT 0
       )
@@ -112,13 +134,14 @@ class AppDatabase {
       )
     ''');
 
-    // Seed default app categories
+    // Seed default app categories with clean names
     final batch = db.batch();
     defaultAppCategories.forEach((pkg, cat) {
       batch.insert(
         'app_categories',
         {
           'package_name': pkg,
+          'app_name': defaultAppNames[pkg],
           'category': cat,
           'is_custom': 0,
         },

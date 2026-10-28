@@ -115,6 +115,16 @@ class MainActivity : FlutterActivity() {
                     val events = UsageStatsHelper.getParsedUsageEvents(this, startTime, endTime)
                     result.success(events)
                 }
+                "getAppLabel" -> {
+                    val pkg = call.argument<String>("package") ?: ""
+                    val label = UsageStatsHelper.getAppLabel(this, pkg)
+                    result.success(label)
+                }
+                "getAppLabels" -> {
+                    val packages = call.argument<List<String>>("packages") ?: emptyList()
+                    val labels = packages.associateWith { UsageStatsHelper.getAppLabel(this, it) }
+                    result.success(labels)
+                }
                 "classifyPackages" -> {
                     val packages = call.argument<List<String>>("packages") ?: emptyList()
                     val classified = classifyPackagesByAndroidCategory(packages)

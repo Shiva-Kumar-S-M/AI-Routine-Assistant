@@ -7,6 +7,7 @@ import '../../domain/models/usage_log.dart';
 import '../../domain/models/focus_session.dart';
 import '../widgets/category_chart.dart';
 import '../widgets/trend_chart.dart';
+import '../../services/app_label_helper.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -381,9 +382,9 @@ class _HistoryScreenState extends State<HistoryScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              log.appName.isNotEmpty
+                              (log.appName.isNotEmpty && log.appName != log.packageName)
                                   ? log.appName
-                                  : log.packageName,
+                                  : AppLabelHelper.cleanPackageName(log.packageName),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,

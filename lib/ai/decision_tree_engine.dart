@@ -1,6 +1,7 @@
 import 'routine_engine.dart';
 import '../domain/models/usage_log.dart';
 import '../domain/models/routine_alert.dart';
+import '../services/app_label_helper.dart';
 
 class DecisionTreeEngine implements RoutineEngine {
   @override
@@ -55,11 +56,15 @@ class DecisionTreeEngine implements RoutineEngine {
         daysUsedThisHour: daysUsedThisHour,
       );
 
+      final cleanName = (log.appName.isNotEmpty && log.appName != log.packageName)
+          ? log.appName
+          : AppLabelHelper.cleanPackageName(log.packageName);
+
       if (predictedClass == 1) {
         // Distraction Alert
         final minutesUsed = (rollingDistraction2h / 60).round();
         final alertMessage =
-            'Distraction Alert: $minutesUsed mins spent on ${log.appName} in past 2h.';
+            'Distraction Alert: $minutesUsed mins spent on $cleanName in past 2h.';
         
         // Avoid duplicate alerts for same app in recent output
         if (!alerts.any((a) => a.packageName == log.packageName && a.type == AlertType.distractionAlert)) {
@@ -88,7 +93,7 @@ class DecisionTreeEngine implements RoutineEngine {
         // Routine Reminder
         final timeFormatted = '${log.startTime.hour.toString().padLeft(2, '0')}:00';
         final alertMessage =
-            'Routine Detected: Consistent usage of ${log.appName} around $timeFormatted.';
+            'Routine Detected: Consistent usage of $cleanName around $timeFormatted.';
         
         if (!alerts.any((a) => a.packageName == log.packageName && a.type == AlertType.routineReminder)) {
           alerts.add(
